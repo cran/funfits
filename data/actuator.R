@@ -1,0 +1,16 @@
+"actuator" <-
+structure(list(act = c("A2", "A1", "A2", "A1", "A2", "A1", "A2", 
+"A1", "A2", "A1", "A2", "A1", "A2", "A1", "A2", "A1"), press = c("30psi", 
+"30psi", "30psi", "30psi", "100psi", "100psi", "100psi", "100psi", 
+"30psi", "30psi", "30psi", "30psi", "100psi", "100psi", "100psi", 
+"100psi"), line = c("20ft", "20ft", "40ft", "40ft", "20ft", "20ft", 
+"40ft", "40ft", "20ft", "20ft", "40ft", "40ft", "20ft", "20ft", 
+"40ft", "40ft"), nozzle = c("straight", "straight", "straight", 
+"straight", "straight", "straight", "straight", "straight", "right ang", 
+"right ang", "right ang", "right ang", "right ang", "right ang", 
+"right ang", "right ang"), force = c(0.099202, 0.070762, 0.075433, 
+0.068982, 0.487464, 0.442802, 0.503937, 0.370022, 0.083024, 0.058082, 
+0.067684, 0.049787, 0.486403, 0.390816, 0.486725, 0.372554), order = c(11, 
+5, 12, 8, 3, 2, 9, 6, 7, 15, 1, 4, 10, 16, 14, 13)), class = "data.frame", row.names = c("1", 
+"2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+"14", "15", "16"))

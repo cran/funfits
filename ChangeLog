@@ -1,0 +1,77 @@
+Tue Oct 20 11:17:07 1998  Albrecht Gebhardt  <albrecht.gebhardt@uni-klu.ac.at>
+
+	* src/nnutil.f, src/mktpar.f, src/addreg.f, src/TPS.f, src/GASP.f, src/EXP.f:
+	patches for use with g77 from egcs applied
+	(thanks to Michael Ward <mward@are.Berkeley.EDU>)
+
+Fri Oct  9 00:32:29 1998  Albrecht Gebhardt  <albrecht.gebhardt@uni-klu.ac.at>
+
+	* R/wt.huber.R, R/rtps.R: wt.huber added from SPlus 3.3 (Win)
+
+	* PORT-STATUS, DESCRIPTION: next release
+
+Wed Aug 19 20:42:29 1998  Albrecht Gebhardt  <albrecht.gebhardt@uni-klu.ac.at>
+
+	* src/Makefile: see DESCRIPTION
+
+	* man/make.lle.Rd: example modified
+
+	* R/make.lags.R, R/GaSP.cov.R, R/INTERP.R, R/as.EOF.cov.R, R/as.cov.isocor.R, R/as.tiles.R, R/bplot.R:
+	a few functions added
+
+Sun May 24 21:50:08 1998  Albrecht Gebhardt  <albrecht.gebhardt@uni-klu.ac.at>
+
+	* src/dpdcr.f, src/dpmse.f, src/dpred.f, src/dprmut.f, src/dptpss.f, src/dreps.f, src/drsap.f, src/dset.f, src/dsetup.f, src/dsgdc.f, src/dsgdc1.f, src/dsnsm.f, src/dsuy.f, src/dtpss.f, src/dtrace.f, src/dtsvdc.f, src/duni.f, src/dvl.f, src/dvlop.f, src/dvmin.f, src/dzdc.f, src/fact.f, src/linpack.f, src/mkkxys.f, src/mkpoly.f, src/prmut.f:
+	Imported Sources
+
+	* src/dpdcr.f, src/dpmse.f, src/dpred.f, src/dprmut.f, src/dptpss.f, src/dreps.f, src/drsap.f, src/dset.f, src/dsetup.f, src/dsgdc.f, src/dsgdc1.f, src/dsnsm.f, src/dsuy.f, src/dtpss.f, src/dtrace.f, src/dtsvdc.f, src/duni.f, src/dvl.f, src/dvlop.f, src/dvmin.f, src/dzdc.f, src/fact.f, src/linpack.f, src/mkkxys.f, src/mkpoly.f, src/prmut.f:
+	Initial revision
+
+	* man/predict.se.tps.Rd, man/predict.surface.Rd, man/predict.surface.se.Rd, man/predict.tps.Rd, man/print.krig.Rd, man/print.nnreg.Rd, man/print.tps.Rd, man/qspreg.Rd, man/rossler.Rd, man/rossler.state.Rd, man/set.panel.Rd, man/splint.Rd, man/spreg.Rd, man/sreg.Rd, man/stats.Rd, man/summary.krig.Rd, man/summary.netfit.Rd, man/summary.nnreg.Rd, man/summary.tps.Rd, man/surface.Rd, man/surface.addreg.Rd, man/surface.krig.Rd, man/surface.nnreg.Rd, man/surface.surface.Rd, man/surface.tps.Rd, man/tps.Rd, man/tpsreg.Rd, man/vgfast.Rd, man/vgram.Rd, man/write.data.Rd, man/xline.Rd, man/yline.Rd, src/DNreps.f, src/DNtpss.f, src/FEXP.f, src/bfgsfmin.f, src/css.f, src/dblas_le.f, src/dcfcr.f, src/dcfr1.f, src/dcpmut.f, src/dcrtz.f, src/dctsx.f, src/ddcom.f, src/ddevf.f, src/ddiag.f, src/dftkf.f, src/dgcv.f, src/dgcv1.f, src/dgemv.f, src/dmakek.f, src/dmaket.f, src/dr_lle.f, src/ev.f, src/liapexp.f, src/linpakle.f, src/llest.f, src/netev.f, src/nkden.f, src/nkreg.f, src/nnreg.f, src/nnregci.f, src/objfun.f, src/qspreg.f, src/rest.f, src/spreg.f, src/tps.f:
+	Imported Sources
+
+	* man/predict.se.tps.Rd, man/predict.surface.Rd, man/predict.surface.se.Rd, man/predict.tps.Rd, man/print.krig.Rd, man/print.nnreg.Rd, man/print.tps.Rd, man/qspreg.Rd, man/rossler.Rd, man/rossler.state.Rd, man/set.panel.Rd, man/splint.Rd, man/spreg.Rd, man/sreg.Rd, man/stats.Rd, man/summary.krig.Rd, man/summary.netfit.Rd, man/summary.nnreg.Rd, man/summary.tps.Rd, man/surface.Rd, man/surface.addreg.Rd, man/surface.krig.Rd, man/surface.nnreg.Rd, man/surface.surface.Rd, man/surface.tps.Rd, man/tps.Rd, man/tpsreg.Rd, man/vgfast.Rd, man/vgram.Rd, man/write.data.Rd, man/xline.Rd, man/yline.Rd, src/DNreps.f, src/DNtpss.f, src/FEXP.f, src/bfgsfmin.f, src/css.f, src/dblas_le.f, src/dcfcr.f, src/dcfr1.f, src/dcpmut.f, src/dcrtz.f, src/dctsx.f, src/ddcom.f, src/ddevf.f, src/ddiag.f, src/dftkf.f, src/dgcv.f, src/dgcv1.f, src/dgemv.f, src/dmakek.f, src/dmaket.f, src/dr_lle.f, src/ev.f, src/liapexp.f, src/linpakle.f, src/llest.f, src/netev.f, src/nkden.f, src/nkreg.f, src/nnreg.f, src/nnregci.f, src/objfun.f, src/qspreg.f, src/rest.f, src/spreg.f, src/tps.f:
+	Initial revision
+
+	* man/climate.Rd, man/cover.design.Rd, man/flame.Rd, man/grid.list.Rd, man/krig.Rd, man/lle.Rd, man/lplot.Rd, man/make.Amatrix.Rd, man/make.Amatrix.krig.Rd, man/make.Amatrix.tps.Rd, man/make.drb.Rd, man/make.lags.Rd, man/make.lags.bak.Rd, man/make.surface.grid.Rd, man/minitri.Rd, man/nkden.Rd, man/nkden.cv.Rd, man/nkreg.Rd, man/nlar.Rd, man/nnreg.Rd, man/nnregCI.Rd, man/optim.funfits.Rd, man/ozone.Rd, man/path.Rd, man/persp.init.Rd, man/plot.krig.Rd, man/plot.lle.Rd, man/plot.nnreg.Rd, man/plot.sreg.Rd, man/plot.surface.Rd, man/plot.tps.Rd, man/plot.window.Rd, man/predict.krig.Rd, man/predict.netfit.Rd, man/predict.nnreg.Rd, man/predict.se.Rd, man/predict.se.krig.Rd, man/rtps.Rd:
+	Imported Sources
+
+	* man/climate.Rd, man/cover.design.Rd, man/flame.Rd, man/grid.list.Rd, man/krig.Rd, man/lle.Rd, man/lplot.Rd, man/make.Amatrix.Rd, man/make.Amatrix.krig.Rd, man/make.Amatrix.tps.Rd, man/make.drb.Rd, man/make.lags.Rd, man/make.lags.bak.Rd, man/make.surface.grid.Rd, man/minitri.Rd, man/nkden.Rd, man/nkden.cv.Rd, man/nkreg.Rd, man/nlar.Rd, man/nnreg.Rd, man/nnregCI.Rd, man/optim.funfits.Rd, man/ozone.Rd, man/path.Rd, man/persp.init.Rd, man/plot.krig.Rd, man/plot.lle.Rd, man/plot.nnreg.Rd, man/plot.sreg.Rd, man/plot.surface.Rd, man/plot.tps.Rd, man/plot.window.Rd, man/predict.krig.Rd, man/predict.netfit.Rd, man/predict.nnreg.Rd, man/predict.se.Rd, man/predict.se.krig.Rd, man/rtps.Rd:
+	Initial revision
+
+	* data/actuator.R, data/actuator.calibrate.R, data/auto.paint.R, data/flame.R, data/injection.R, data/khuri.df1.R, data/minitri.R, data/ozone.R, data/ozone2.R, data/rat.R, data/rat.diet.R, data/rossler.R, data/rossler.state.R, data/yarn.R, man/BD.Rd, man/BD2.Rd, man/actuator.Rd, man/actuator.calibrate.Rd, man/addreg.Rd, man/as.surface.Rd, man/auto.paint.Rd, man/bplot.Rd:
+	Imported Sources
+
+	* data/actuator.R, data/actuator.calibrate.R, data/auto.paint.R, data/flame.R, data/injection.R, data/khuri.df1.R, data/minitri.R, data/ozone.R, data/ozone2.R, data/rat.R, data/rat.diet.R, data/rossler.R, data/rossler.state.R, data/yarn.R, man/BD.Rd, man/BD2.Rd, man/actuator.Rd, man/actuator.calibrate.Rd, man/addreg.Rd, man/as.surface.Rd, man/auto.paint.Rd, man/bplot.Rd:
+	Initial revision
+
+	* R/bisection.search.R, R/d.squasher.nnreg.R, R/make.Kc.R, R/nnregCI.R, R/plot.predict.tpsreg.R, R/plot.tps.R, R/plot.tpsreg.R, R/predict.krig.R, R/predict.tps.R, R/predict.tpsreg.R, R/scompat.R, R/summary.krig.R, R/summary.lle.R, R/surface.nnreg.R, R/surface.tps.R, R/surface.tpsreg.R, R/tps.df.to.lambda.R, R/tps.fdf.R, R/tps.fs2hat.R, R/tps.fshat.R, data/BD.R, data/BD2.R:
+	Imported Sources
+
+	* R/bisection.search.R, R/d.squasher.nnreg.R, R/make.Kc.R, R/nnregCI.R, R/plot.predict.tpsreg.R, R/plot.tps.R, R/plot.tpsreg.R, R/predict.krig.R, R/predict.tps.R, R/predict.tpsreg.R, R/scompat.R, R/summary.krig.R, R/summary.lle.R, R/surface.nnreg.R, R/surface.tps.R, R/surface.tpsreg.R, R/tps.df.to.lambda.R, R/tps.fdf.R, R/tps.fs2hat.R, R/tps.fshat.R, data/BD.R, data/BD2.R:
+	Initial revision
+
+	* R/COR.R, R/EOF.cov.R, R/cat.matrix.R, R/describe.R, R/lle.R, R/lle.default.R, R/lle.nlar.R, R/make.Amatrix.R, R/make.Amatrix.krig.R, R/make.Amatrix.tps.R, R/make.lle.R, R/make.rb.R, R/pair.na.R, R/plot.krig.R, R/plot.lle.R, R/print.tps.R, R/print.tpsreg.R, R/radbas.constant.R, R/stats.R, R/summary.tps.R, R/summary.tpsreg.R, R/surface.krig.R, R/tps.R, R/tps.fgcv.R, R/tps.ftrace.R, R/tpsreg.R, R/ushell.design.R:
+	Imported Sources
+
+	* R/COR.R, R/EOF.cov.R, R/cat.matrix.R, R/describe.R, R/lle.R, R/lle.default.R, R/lle.nlar.R, R/make.Amatrix.R, R/make.Amatrix.krig.R, R/make.Amatrix.tps.R, R/make.lle.R, R/make.rb.R, R/pair.na.R, R/plot.krig.R, R/plot.lle.R, R/print.tps.R, R/print.tpsreg.R, R/radbas.constant.R, R/stats.R, R/summary.tps.R, R/summary.tpsreg.R, R/surface.krig.R, R/tps.R, R/tps.fgcv.R, R/tps.ftrace.R, R/tpsreg.R, R/ushell.design.R:
+	Initial revision
+
+	* R/predict.se.R, R/predict.se.krig.R, R/print.krig.R, R/splint.R, R/squasher.nnreg.R, R/summary.netfit.R, R/summary.nlar.R, R/summary.nnreg.R, R/surface.R, R/surface.addreg.R, R/surface.surface.R, R/touch.file.R, R/transformx.R, R/unique.matrix.R, R/unscale.R, R/write.data.R, R/xline.R, R/yline.R, R/zzz.R:
+	Imported Sources
+
+	* R/predict.se.R, R/predict.se.krig.R, R/print.krig.R, R/splint.R, R/squasher.nnreg.R, R/summary.netfit.R, R/summary.nlar.R, R/summary.nnreg.R, R/surface.R, R/surface.addreg.R, R/surface.surface.R, R/touch.file.R, R/transformx.R, R/unique.matrix.R, R/unscale.R, R/write.data.R, R/xline.R, R/yline.R, R/zzz.R:
+	Initial revision
+
+	* R/gcv.tps.R, R/golden.section.search.R, R/interp.grid.R, R/interp.surface.R, R/krig.R, R/make.surface.grid.R, R/make.tmatrix.R, R/netfit.reformat.greedy.R, R/nkden.R, R/nnreg.R, R/plot.addreg.R, R/plot.nnreg.R, R/plot.surface.R, R/predict.addreg.R, R/predict.netfit.R, R/predict.nnreg.R, R/predict.surface.R, R/print.nnreg.R, R/print.text.R, R/qr.q2ty.R, R/qr.q2y.R, R/qr.yq2.R, R/rdist.R, R/read.nnreg.R, R/remove.file.R, R/set.panel.R:
+	Imported Sources
+
+	* R/gcv.tps.R, R/golden.section.search.R, R/interp.grid.R, R/interp.surface.R, R/krig.R, R/make.surface.grid.R, R/make.tmatrix.R, R/netfit.reformat.greedy.R, R/nkden.R, R/nnreg.R, R/plot.addreg.R, R/plot.nnreg.R, R/plot.surface.R, R/predict.addreg.R, R/predict.netfit.R, R/predict.nnreg.R, R/predict.surface.R, R/print.nnreg.R, R/print.text.R, R/qr.q2ty.R, R/qr.q2y.R, R/qr.yq2.R, R/rdist.R, R/read.nnreg.R, R/remove.file.R, R/set.panel.R:
+	Initial revision
+
+	* INDEX, R/EXP.cov.R, R/FEXP.R, R/FUNFITS.version.R, R/add.netfit.model.R, R/addreg.R, R/as.surface.R, R/coef.nnreg.R, R/dup.R, R/dup.matrix.R, R/exp.cov.R, R/gcv.R, R/gcv.krig.R, README, TITLE:
+	Imported Sources
+
+	* INDEX, R/EXP.cov.R, R/FEXP.R, R/FUNFITS.version.R, R/add.netfit.model.R, R/addreg.R, R/as.surface.R, R/coef.nnreg.R, R/dup.R, R/dup.matrix.R, R/exp.cov.R, R/gcv.R, R/gcv.krig.R, README, TITLE:
+	Initial revision
+

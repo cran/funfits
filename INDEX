@@ -1,0 +1,58 @@
+addreg		Additive nonparametric regression
+as.surface	Creates an object for plotting using contour, persp or image
+bplot		boxplot
+cover.design	Generate a coverage design.
+krig		Kriging surface estimate 
+lle		Calculates local Lyapunov exponents for plotting.
+lplot		Labeled plot
+make.Amatrix	Matrix relating predicted values to the dependent (Y) values
+make.drb	Evaluates the Demmler-Reinsch basis fucntions 
+make.lle	Calculates global and local Lyapunov exponents
+make.surface.grid Makes a grid surface that can be plotted.
+nkden		Normal kernel density estimate
+nkden.cv	Cross- validation function for a normal kernel density estimate
+nkreg		Normal kernel regression estimate
+nlar		Nonlinear autoregressive model
+nnreg		Fits a surface based on a neural network
+nnregCI	Finds a confidence set of parameters for a neural net fit. 
+optim.funfits	Finds optimum within a region
+path		Finds path of steepest ascent
+plot.krig	Diagnoistic and summary plots of the kriging object
+plot.lle	Plots local Lyapunov exponents
+plot.nnreg	Diagnoistic and summary plots of a neural net regression object
+plot.sreg	Plots smoothing spline regression object
+plot.surface	Plots a surface
+plot.tps	Diagnoistic and summary plots for a thin plate spline regression object
+plot.window	Creates a motif graphics window.
+predict.netfit	Evaluation of a neural net fit based on a model component 
+predict.nnreg	Evaluation of neural net surface.
+predict.se	Standard errors of predictions
+predict.se.krig Standard errors of predictions for kriging estimate
+predict.se.tps	Standard errors of predictions for thin plate spline regression
+predict.surface Evaluates a function on a surface
+predict.tps	Evaluation of thin plate spline surface.
+print.krig	Print kriging fit results.
+print.nnreg	Print nnreg fit results
+print.tps	Print thin plate spline fit results
+qspreg		Quantile spline regression 
+rtps		Robust thin plate spline regression
+set.panel	Specify a panel of plots
+splint		Cubic spline interpolation
+spreg		Smoothing spline regression
+sreg		Smoothing spline regression
+stats		Calculate summary statistics
+summary.krig	Summary for krigging fit
+summary.netfit	Summary of parameters of netfit object
+summary.nnreg	Summary for neural net regression
+summary.tps	Summary for thin plate spline regression
+surface	Plots a surface
+surface.addreg	Plots a surface and contours
+surface.krig	Plots a surface and contours
+surface.surface Plots a surface
+surface.tps	Plots a surface and contours
+tps		Thin plate spline regression
+vgfast		Fast variogram for replicated fields
+vgram		Variogram
+write.data	Writes data set out to a file
+xline		Draw a vertical line
+yline		Draw a horizontal line

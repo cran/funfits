@@ -1,0 +1,1961 @@
+      DOUBLE PRECISION FUNCTION DASUM(N,DX,INCX)
+C
+C     TAKES THE SUM OF THE ABSOLUTE VALUES.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DTEMP
+      INTEGER I,INCX,M,MP1,N,NINCX
+C
+      DASUM = 0.0D0
+      DTEMP = 0.0D0
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1)GO TO 20
+C
+C        CODE FOR INCREMENT NOT EQUAL TO 1
+C
+      NINCX = N*INCX
+      DO 10 I = 1,NINCX,INCX
+        DTEMP = DTEMP + DABS(DX(I))
+   10 CONTINUE
+      DASUM = DTEMP
+      RETURN
+C
+C        CODE FOR INCREMENT EQUAL TO 1
+C
+C
+C        CLEAN-UP LOOP
+C
+   20 M = MOD(N,6)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DTEMP = DTEMP + DABS(DX(I))
+   30 CONTINUE
+      IF( N .LT. 6 ) GO TO 60
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,6
+        DTEMP = DTEMP + DABS(DX(I)) + DABS(DX(I + 1)) + DABS(DX(I + 2))
+     *  + DABS(DX(I + 3)) + DABS(DX(I + 4)) + DABS(DX(I + 5))
+   50 CONTINUE
+   60 DASUM = DTEMP
+      RETURN
+      END
+      SUBROUTINE DAXPY(N,DA,DX,INCX,DY,INCY)
+C
+C     CONSTANT TIMES A VECTOR PLUS A VECTOR.
+C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DY(1),DA
+      INTEGER I,INCX,INCY,M,MP1,N
+C
+      IF(N.LE.0)RETURN
+      IF (DA .EQ. 0.0D0) RETURN
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+C
+C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
+C          NOT EQUAL TO 1
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+        DY(IY) = DY(IY) + DA*DX(IX)
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      RETURN
+C
+C        CODE FOR BOTH INCREMENTS EQUAL TO 1
+C
+C
+C        CLEAN-UP LOOP
+C
+   20 M = MOD(N,4)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DY(I) = DY(I) + DA*DX(I)
+   30 CONTINUE
+      IF( N .LT. 4 ) RETURN
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,4
+        DY(I) = DY(I) + DA*DX(I)
+        DY(I + 1) = DY(I + 1) + DA*DX(I + 1)
+        DY(I + 2) = DY(I + 2) + DA*DX(I + 2)
+        DY(I + 3) = DY(I + 3) + DA*DX(I + 3)
+   50 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DCHDC(A,LDA,P,WORK,JPVT,JOB,INFO)
+      INTEGER LDA,P,JPVT(1),JOB,INFO
+      DOUBLE PRECISION A(LDA,1),WORK(1)
+C
+C     DCHDC COMPUTES THE CHOLESKY DECOMPOSITION OF A POSITIVE DEFINITE
+C     MATRIX.  A PIVOTING OPTION ALLOWS THE USER TO ESTIMATE THE
+C     CONDITION OF A POSITIVE DEFINITE MATRIX OR DETERMINE THE RANK
+C     OF A POSITIVE SEMIDEFINITE MATRIX.
+C
+C     ON ENTRY
+C
+C         A      DOUBLE PRECISION(LDA,P).
+C                A CONTAINS THE MATRIX WHOSE DECOMPOSITION IS TO
+C                BE COMPUTED.  ONLT THE UPPER HALF OF A NEED BE STORED.
+C                THE LOWER PART OF THE ARRAY A IS NOT REFERENCED.
+C
+C         LDA    INTEGER.
+C                LDA IS THE LEADING DIMENSION OF THE ARRAY A.
+C
+C         P      INTEGER.
+C                P IS THE ORDER OF THE MATRIX.
+C
+C         WORK   DOUBLE PRECISION.
+C                WORK IS A WORK ARRAY.
+C
+C         JPVT   INTEGER(P).
+C                JPVT CONTAINS INTEGERS THAT CONTROL THE SELECTION
+C                OF THE PIVOT ELEMENTS, IF PIVOTING HAS BEEN REQUESTED.
+C                EACH DIAGONAL ELEMENT A(K,K)
+C                IS PLACED IN ONE OF THREE CLASSES ACCORDING TO THE
+C                VALUE OF JPVT(K).
+C
+C                   IF JPVT(K) .GT. 0, THEN X(K) IS AN INITIAL
+C                                      ELEMENT.
+C
+C                   IF JPVT(K) .EQ. 0, THEN X(K) IS A FREE ELEMENT.
+C
+C                   IF JPVT(K) .LT. 0, THEN X(K) IS A FINAL ELEMENT.
+C
+C                BEFORE THE DECOMPOSITION IS COMPUTED, INITIAL ELEMENTS
+C                ARE MOVED BY SYMMETRIC ROW AND COLUMN INTERCHANGES TO
+C                THE BEGINNING OF THE ARRAY A AND FINAL
+C                ELEMENTS TO THE END.  BOTH INITIAL AND FINAL ELEMENTS
+C                ARE FROZEN IN PLACE DURING THE COMPUTATION AND ONLY
+C                FREE ELEMENTS ARE MOVED.  AT THE K-TH STAGE OF THE
+C                REDUCTION, IF A(K,K) IS OCCUPIED BY A FREE ELEMENT
+C                IT IS INTERCHANGED WITH THE LARGEST FREE ELEMENT
+C                A(L,L) WITH L .GE. K.  JPVT IS NOT REFERENCED IF
+C                JOB .EQ. 0.
+C
+C        JOB     INTEGER.
+C                JOB IS AN INTEGER THAT INITIATES COLUMN PIVOTING.
+C                IF JOB .EQ. 0, NO PIVOTING IS DONE.
+C                IF JOB .NE. 0, PIVOTING IS DONE.
+C
+C     ON RETURN
+C
+C         A      A CONTAINS IN ITS UPPER HALF THE CHOLESKY FACTOR
+C                OF THE MATRIX A AS IT HAS BEEN PERMUTED BY PIVOTING.
+C
+C         JPVT   JPVT(J) CONTAINS THE INDEX OF THE DIAGONAL ELEMENT
+C                OF A THAT WAS MOVED INTO THE J-TH POSITION,
+C                PROVIDED PIVOTING WAS REQUESTED.
+C
+C         INFO   CONTAINS THE INDEX OF THE LAST POSITIVE DIAGONAL
+C                ELEMENT OF THE CHOLESKY FACTOR.
+C
+C     FOR POSITIVE DEFINITE MATRICES INFO = P IS THE NORMAL RETURN.
+C     FOR PIVOTING WITH POSITIVE SEMIDEFINITE MATRICES INFO WILL
+C     IN GENERAL BE LESS THAN P.  HOWEVER, INFO MAY BE GREATER THAN
+C     THE RANK OF A, SINCE ROUNDING ERROR CAN CAUSE AN OTHERWISE ZERO
+C     ELEMENT TO BE POSITIVE. INDEFINITE SYSTEMS WILL ALWAYS CAUSE
+C     INFO TO BE LESS THAN P.
+C
+C     LINPACK. THIS VERSION DATED 03/19/79 .
+C     J.J. DONGARRA AND G.W. STEWART, ARGONNE NATIONAL LABORATORY AND
+C     UNIVERSITY OF MARYLAND.
+C
+C
+C     BLAS DAXPY,DSWAP
+C     FORTRAN DSQRT
+C
+C     INTERNAL VARIABLES
+C
+      INTEGER PU,PL,PLP1,J,JP,JT,K,KB,KM1,KP1,L,MAXL
+      DOUBLE PRECISION TEMP
+      DOUBLE PRECISION MAXDIA
+      LOGICAL SWAPK,NEGK
+C
+      PL = 1
+      PU = 0
+      INFO = P
+      IF (JOB .EQ. 0) GO TO 160
+C
+C        PIVOTING HAS BEEN REQUESTED. REARRANGE THE
+C        THE ELEMENTS ACCORDING TO JPVT.
+C
+         DO 70 K = 1, P
+            SWAPK = JPVT(K) .GT. 0
+            NEGK = JPVT(K) .LT. 0
+            JPVT(K) = K
+            IF (NEGK) JPVT(K) = -JPVT(K)
+            IF (.NOT.SWAPK) GO TO 60
+               IF (K .EQ. PL) GO TO 50
+                  CALL DSWAP(PL-1,A(1,K),1,A(1,PL),1)
+                  TEMP = A(K,K)
+                  A(K,K) = A(PL,PL)
+                  A(PL,PL) = TEMP
+                  PLP1 = PL + 1
+                  IF (P .LT. PLP1) GO TO 40
+                  DO 30 J = PLP1, P
+                     IF (J .GE. K) GO TO 10
+                        TEMP = A(PL,J)
+                        A(PL,J) = A(J,K)
+                        A(J,K) = TEMP
+                     GO TO 20
+   10                CONTINUE
+                     IF (J .EQ. K) GO TO 20
+                        TEMP = A(K,J)
+                        A(K,J) = A(PL,J)
+                        A(PL,J) = TEMP
+   20                CONTINUE
+   30             CONTINUE
+   40             CONTINUE
+                  JPVT(K) = JPVT(PL)
+                  JPVT(PL) = K
+   50          CONTINUE
+               PL = PL + 1
+   60       CONTINUE
+   70    CONTINUE
+         PU = P
+         IF (P .LT. PL) GO TO 150
+         DO 140 KB = PL, P
+            K = P - KB + PL
+            IF (JPVT(K) .GE. 0) GO TO 130
+               JPVT(K) = -JPVT(K)
+               IF (PU .EQ. K) GO TO 120
+                  CALL DSWAP(K-1,A(1,K),1,A(1,PU),1)
+                  TEMP = A(K,K)
+                  A(K,K) = A(PU,PU)
+                  A(PU,PU) = TEMP
+                  KP1 = K + 1
+                  IF (P .LT. KP1) GO TO 110
+                  DO 100 J = KP1, P
+                     IF (J .GE. PU) GO TO 80
+                        TEMP = A(K,J)
+                        A(K,J) = A(J,PU)
+                        A(J,PU) = TEMP
+                     GO TO 90
+   80                CONTINUE
+                     IF (J .EQ. PU) GO TO 90
+                        TEMP = A(K,J)
+                        A(K,J) = A(PU,J)
+                        A(PU,J) = TEMP
+   90                CONTINUE
+  100             CONTINUE
+  110             CONTINUE
+                  JT = JPVT(K)
+                  JPVT(K) = JPVT(PU)
+                  JPVT(PU) = JT
+  120          CONTINUE
+               PU = PU - 1
+  130       CONTINUE
+  140    CONTINUE
+  150    CONTINUE
+  160 CONTINUE
+      DO 270 K = 1, P
+C
+C        REDUCTION LOOP.
+C
+         MAXDIA = A(K,K)
+         KP1 = K + 1
+         MAXL = K
+C
+C        DETERMINE THE PIVOT ELEMENT.
+C
+         IF (K .LT. PL .OR. K .GE. PU) GO TO 190
+            DO 180 L = KP1, PU
+               IF (A(L,L) .LE. MAXDIA) GO TO 170
+                  MAXDIA = A(L,L)
+                  MAXL = L
+  170          CONTINUE
+  180       CONTINUE
+  190    CONTINUE
+C
+C        QUIT IF THE PIVOT ELEMENT IS NOT POSITIVE.
+C
+         IF (MAXDIA .GT. 0.0D0) GO TO 200
+            INFO = K - 1
+C     ......EXIT
+            GO TO 280
+  200    CONTINUE
+         IF (K .EQ. MAXL) GO TO 210
+C
+C           START THE PIVOTING AND UPDATE JPVT.
+C
+            KM1 = K - 1
+            CALL DSWAP(KM1,A(1,K),1,A(1,MAXL),1)
+            A(MAXL,MAXL) = A(K,K)
+            A(K,K) = MAXDIA
+            JP = JPVT(MAXL)
+            JPVT(MAXL) = JPVT(K)
+            JPVT(K) = JP
+  210    CONTINUE
+C
+C        REDUCTION STEP. PIVOTING IS CONTAINED ACROSS THE ROWS.
+C
+         WORK(K) = DSQRT(A(K,K))
+         A(K,K) = WORK(K)
+         IF (P .LT. KP1) GO TO 260
+         DO 250 J = KP1, P
+            IF (K .EQ. MAXL) GO TO 240
+               IF (J .GE. MAXL) GO TO 220
+                  TEMP = A(K,J)
+                  A(K,J) = A(J,MAXL)
+                  A(J,MAXL) = TEMP
+               GO TO 230
+  220          CONTINUE
+               IF (J .EQ. MAXL) GO TO 230
+                  TEMP = A(K,J)
+                  A(K,J) = A(MAXL,J)
+                  A(MAXL,J) = TEMP
+  230          CONTINUE
+  240       CONTINUE
+            A(K,J) = A(K,J)/WORK(K)
+            WORK(J) = A(K,J)
+            TEMP = -A(K,J)
+            CALL DAXPY(J-K,TEMP,WORK(KP1),1,A(KP1,J),1)
+  250    CONTINUE
+  260    CONTINUE
+  270 CONTINUE
+  280 CONTINUE
+      RETURN
+      END
+      SUBROUTINE  DCOPY(N,DX,INCX,DY,INCY)
+C
+C     COPIES A VECTOR, X, TO A VECTOR, Y.
+C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DY(1)
+      INTEGER I,INCX,INCY,IX,IY,M,MP1,N
+C
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+C
+C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
+C          NOT EQUAL TO 1
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+        DY(IY) = DX(IX)
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      RETURN
+C
+C        CODE FOR BOTH INCREMENTS EQUAL TO 1
+C
+C
+C        CLEAN-UP LOOP
+C
+   20 M = MOD(N,7)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DY(I) = DX(I)
+   30 CONTINUE
+      IF( N .LT. 7 ) RETURN
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,7
+        DY(I) = DX(I)
+        DY(I + 1) = DX(I + 1)
+        DY(I + 2) = DX(I + 2)
+        DY(I + 3) = DX(I + 3)
+        DY(I + 4) = DX(I + 4)
+        DY(I + 5) = DX(I + 5)
+        DY(I + 6) = DX(I + 6)
+   50 CONTINUE
+      RETURN
+      END
+      DOUBLE PRECISION FUNCTION DDOT(N,DX,INCX,DY,INCY)
+C
+C     FORMS THE DOT PRODUCT OF TWO VECTORS.
+C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DY(1),DTEMP
+      INTEGER I,INCX,INCY,IX,IY,M,MP1,N
+C
+      DDOT = 0.0D0
+      DTEMP = 0.0D0
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+C
+C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
+C          NOT EQUAL TO 1
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+        DTEMP = DTEMP + DX(IX)*DY(IY)
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      DDOT = DTEMP
+      RETURN
+C
+C        CODE FOR BOTH INCREMENTS EQUAL TO 1
+C
+C
+C        CLEAN-UP LOOP
+C
+   20 M = MOD(N,5)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DTEMP = DTEMP + DX(I)*DY(I)
+   30 CONTINUE
+      IF( N .LT. 5 ) GO TO 60
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,5
+        DTEMP = DTEMP + DX(I)*DY(I) + DX(I + 1)*DY(I + 1) +
+     *   DX(I + 2)*DY(I + 2) + DX(I + 3)*DY(I + 3) + DX(I + 4)*DY(I + 4)
+   50 CONTINUE
+   60 DDOT = DTEMP
+      RETURN
+      END
+      DOUBLE PRECISION FUNCTION DNRM2 ( N, DX, INCX)
+      INTEGER          NEXT
+      DOUBLE PRECISION   DX(1), CUTLO, CUTHI, HITEST, SUM, XMAX,ZERO,ONE
+      DATA   ZERO, ONE /0.0D0, 1.0D0/
+C
+C     EUCLIDEAN NORM OF THE N-VECTOR STORED IN DX() WITH STORAGE
+C     INCREMENT INCX .
+C     IF    N .LE. 0 RETURN WITH RESULT = 0.
+C     IF N .GE. 1 THEN INCX MUST BE .GE. 1
+C
+C           C.L.LAWSON, 1978 JAN 08
+C
+C     FOUR PHASE METHOD     USING TWO BUILT-IN CONSTANTS THAT ARE
+C     HOPEFULLY APPLICABLE TO ALL MACHINES.
+C         CUTLO = MAXIMUM OF  DSQRT(U/EPS)  OVER ALL KNOWN MACHINES.
+C         CUTHI = MINIMUM OF  DSQRT(V)      OVER ALL KNOWN MACHINES.
+C     WHERE
+C         EPS = SMALLEST NO. SUCH THAT EPS + 1. .GT. 1.
+C         U   = SMALLEST POSITIVE NO.   (UNDERFLOW LIMIT)
+C         V   = LARGEST  NO.            (OVERFLOW  LIMIT)
+C
+C     BRIEF OUTLINE OF ALGORITHM..
+C
+C     PHASE 1    SCANS ZERO COMPONENTS.
+C     MOVE TO PHASE 2 WHEN A COMPONENT IS NONZERO AND .LE. CUTLO
+C     MOVE TO PHASE 3 WHEN A COMPONENT IS .GT. CUTLO
+C     MOVE TO PHASE 4 WHEN A COMPONENT IS .GE. CUTHI/M
+C     WHERE M = N FOR X() REAL AND M = 2*N FOR COMPLEX.
+C
+C     VALUES FOR CUTLO AND CUTHI..
+C     FROM THE ENVIRONMENTAL PARAMETERS LISTED IN THE IMSL CONVERTER
+C     DOCUMENT THE LIMITING VALUES ARE AS FOLLOWS..
+C     CUTLO, S.P.   U/EPS = 2**(-102) FOR  HONEYWELL.  CLOSE SECONDS ARE
+C                   UNIVAC AND DEC AT 2**(-103)
+C                   THUS CUTLO = 2**(-51) = 4.44089E-16
+C     CUTHI, S.P.   V = 2**127 FOR UNIVAC, HONEYWELL, AND DEC.
+C                   THUS CUTHI = 2**(63.5) = 1.30438E19
+C     CUTLO, D.P.   U/EPS = 2**(-67) FOR HONEYWELL AND DEC.
+C                   THUS CUTLO = 2**(-33.5) = 8.23181D-11
+C     CUTHI, D.P.   SAME AS S.P.  CUTHI = 1.30438D19
+C     DATA CUTLO, CUTHI / 8.232D-11,  1.304D19 /
+C     DATA CUTLO, CUTHI / 4.441E-16,  1.304E19 /
+      DATA CUTLO, CUTHI / 8.232D-11,  1.304D19 /
+C
+      IF(N .GT. 0) GO TO 10
+         DNRM2  = ZERO
+         GO TO 300
+C
+   10 ASSIGN 30 TO NEXT
+      SUM = ZERO
+      NN = N * INCX
+C                                                 BEGIN MAIN LOOP
+      I = 1
+   20    GO TO NEXT,(30, 50, 70, 110)
+   30 IF( DABS(DX(I)) .GT. CUTLO) GO TO 85
+      ASSIGN 50 TO NEXT
+      XMAX = ZERO
+C
+C                        PHASE 1.  SUM IS ZERO
+C
+   50 IF( DX(I) .EQ. ZERO) GO TO 200
+      IF( DABS(DX(I)) .GT. CUTLO) GO TO 85
+C
+C                                PREPARE FOR PHASE 2.
+      ASSIGN 70 TO NEXT
+      GO TO 105
+C
+C                                PREPARE FOR PHASE 4.
+C
+  100 I = J
+      ASSIGN 110 TO NEXT
+      SUM = (SUM / DX(I)) / DX(I)
+  105 XMAX = DABS(DX(I))
+      GO TO 115
+C
+C                   PHASE 2.  SUM IS SMALL.
+C                             SCALE TO AVOID DESTRUCTIVE UNDERFLOW.
+C
+   70 IF( DABS(DX(I)) .GT. CUTLO ) GO TO 75
+C
+C                     COMMON CODE FOR PHASES 2 AND 4.
+C                     IN PHASE 4 SUM IS LARGE.  SCALE TO AVOID OVERFLOW.
+C
+  110 IF( DABS(DX(I)) .LE. XMAX ) GO TO 115
+         SUM = ONE + SUM * (XMAX / DX(I))**2
+         XMAX = DABS(DX(I))
+         GO TO 200
+C
+  115 SUM = SUM + (DX(I)/XMAX)**2
+      GO TO 200
+C
+C
+C                  PREPARE FOR PHASE 3.
+C
+   75 SUM = (SUM * XMAX) * XMAX
+C
+C
+C     FOR REAL OR D.P. SET HITEST = CUTHI/N
+C     FOR COMPLEX      SET HITEST = CUTHI/(2*N)
+C
+   85 HITEST = CUTHI/FLOAT( N )
+C
+C                   PHASE 3.  SUM IS MID-RANGE.  NO SCALING.
+C
+      DO 95 J =I,NN,INCX
+      IF(DABS(DX(J)) .GE. HITEST) GO TO 100
+   95    SUM = SUM + DX(J)**2
+      DNRM2 = DSQRT( SUM )
+      GO TO 300
+C
+  200 CONTINUE
+      I = I + INCX
+      IF ( I .LE. NN ) GO TO 20
+C
+C              END OF MAIN LOOP.
+C
+C              COMPUTE SQUARE ROOT AND ADJUST FOR SCALING.
+C
+      DNRM2 = XMAX * DSQRT(SUM)
+  300 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DQRDC(X,LDX,N,P,QRAUX,JPVT,WORK,JOB)
+      INTEGER LDX,N,P,JOB
+      INTEGER JPVT(1)
+      DOUBLE PRECISION X(LDX,1),QRAUX(1),WORK(1)
+C
+C     DQRDC USES HOUSEHOLDER TRANSFORMATIONS TO COMPUTE THE QR
+C     FACTORIZATION OF AN N BY P MATRIX X.  COLUMN PIVOTING
+C     BASED ON THE 2-NORMS OF THE REDUCED COLUMNS MAY BE
+C     PERFORMED AT THE USERS OPTION.
+C
+C     ON ENTRY
+C
+C        X       DOUBLE PRECISION(LDX,P), WHERE LDX .GE. N.
+C                X CONTAINS THE MATRIX WHOSE DECOMPOSITION IS TO BE
+C                COMPUTED.
+C
+C        LDX     INTEGER.
+C                LDX IS THE LEADING DIMENSION OF THE ARRAY X.
+C
+C        N       INTEGER.
+C                N IS THE NUMBER OF ROWS OF THE MATRIX X.
+C
+C        P       INTEGER.
+C                P IS THE NUMBER OF COLUMNS OF THE MATRIX X.
+C
+C        JPVT    INTEGER(P).
+C                JPVT CONTAINS INTEGERS THAT CONTROL THE SELECTION
+C                OF THE PIVOT COLUMNS.  THE K-TH COLUMN X(K) OF X
+C                IS PLACED IN ONE OF THREE CLASSES ACCORDING TO THE
+C                VALUE OF JPVT(K).
+C
+C                   IF JPVT(K) .GT. 0, THEN X(K) IS AN INITIAL
+C                                      COLUMN.
+C
+C                   IF JPVT(K) .EQ. 0, THEN X(K) IS A FREE COLUMN.
+C
+C                   IF JPVT(K) .LT. 0, THEN X(K) IS A FINAL COLUMN.
+C
+C                BEFORE THE DECOMPOSITION IS COMPUTED, INITIAL COLUMNS
+C                ARE MOVED TO THE BEGINNING OF THE ARRAY X AND FINAL
+C                COLUMNS TO THE END.  BOTH INITIAL AND FINAL COLUMNS
+C                ARE FROZEN IN PLACE DURING THE COMPUTATION AND ONLY
+C                FREE COLUMNS ARE MOVED.  AT THE K-TH STAGE OF THE
+C                REDUCTION, IF X(K) IS OCCUPIED BY A FREE COLUMN
+C                IT IS INTERCHANGED WITH THE FREE COLUMN OF LARGEST
+C                REDUCED NORM.  JPVT IS NOT REFERENCED IF
+C                JOB .EQ. 0.
+C
+C        WORK    DOUBLE PRECISION(P).
+C                WORK IS A WORK ARRAY.  WORK IS NOT REFERENCED IF
+C                JOB .EQ. 0.
+C
+C        JOB     INTEGER.
+C                JOB IS AN INTEGER THAT INITIATES COLUMN PIVOTING.
+C                IF JOB .EQ. 0, NO PIVOTING IS DONE.
+C                IF JOB .NE. 0, PIVOTING IS DONE.
+C
+C     ON RETURN
+C
+C        X       X CONTAINS IN ITS UPPER TRIANGLE THE UPPER
+C                TRIANGULAR MATRIX R OF THE QR FACTORIZATION.
+C                BELOW ITS DIAGONAL X CONTAINS INFORMATION FROM
+C                WHICH THE ORTHOGONAL PART OF THE DECOMPOSITION
+C                CAN BE RECOVERED.  NOTE THAT IF PIVOTING HAS
+C                BEEN REQUESTED, THE DECOMPOSITION IS NOT THAT
+C                OF THE ORIGINAL MATRIX X BUT THAT OF X
+C                WITH ITS COLUMNS PERMUTED AS DESCRIBED BY JPVT.
+C
+C        QRAUX   DOUBLE PRECISION(P).
+C                QRAUX CONTAINS FURTHER INFORMATION REQUIRED TO RECOVER
+C                THE ORTHOGONAL PART OF THE DECOMPOSITION.
+C
+C        JPVT    JPVT(K) CONTAINS THE INDEX OF THE COLUMN OF THE
+C                ORIGINAL MATRIX THAT HAS BEEN INTERCHANGED INTO
+C                THE K-TH COLUMN, IF PIVOTING WAS REQUESTED.
+C
+C     LINPACK. THIS VERSION DATED 08/14/78 .
+C     G.W. STEWART, UNIVERSITY OF MARYLAND, ARGONNE NATIONAL LAB.
+C
+C     DQRDC USES THE FOLLOWING FUNCTIONS AND SUBPROGRAMS.
+C
+C     BLAS DAXPY,DDOT,DSCAL,DSWAP,DNRM2
+C     FORTRAN DABS,DMAX1,MIN0,DSQRT
+C
+C     INTERNAL VARIABLES
+C
+      INTEGER J,JP,L,LP1,LUP,MAXJ,PL,PU
+      DOUBLE PRECISION MAXNRM,DNRM2,TT
+      DOUBLE PRECISION DDOT,NRMXL,T
+      LOGICAL NEGJ,SWAPJ
+C
+C
+      PL = 1
+      PU = 0
+      IF (JOB .EQ. 0) GO TO 60
+C
+C        PIVOTING HAS BEEN REQUESTED.  REARRANGE THE COLUMNS
+C        ACCORDING TO JPVT.
+C
+         DO 20 J = 1, P
+            SWAPJ = JPVT(J) .GT. 0
+            NEGJ = JPVT(J) .LT. 0
+            JPVT(J) = J
+            IF (NEGJ) JPVT(J) = -J
+            IF (.NOT.SWAPJ) GO TO 10
+               IF (J .NE. PL) CALL DSWAP(N,X(1,PL),1,X(1,J),1)
+               JPVT(J) = JPVT(PL)
+               JPVT(PL) = J
+               PL = PL + 1
+   10       CONTINUE
+   20    CONTINUE
+         PU = P
+         DO 50 JJ = 1, P
+            J = P - JJ + 1
+            IF (JPVT(J) .GE. 0) GO TO 40
+               JPVT(J) = -JPVT(J)
+               IF (J .EQ. PU) GO TO 30
+                  CALL DSWAP(N,X(1,PU),1,X(1,J),1)
+                  JP = JPVT(PU)
+                  JPVT(PU) = JPVT(J)
+                  JPVT(J) = JP
+   30          CONTINUE
+               PU = PU - 1
+   40       CONTINUE
+   50    CONTINUE
+   60 CONTINUE
+C
+C     COMPUTE THE NORMS OF THE FREE COLUMNS.
+C
+      IF (PU .LT. PL) GO TO 80
+      DO 70 J = PL, PU
+         QRAUX(J) = DNRM2(N,X(1,J),1)
+         WORK(J) = QRAUX(J)
+   70 CONTINUE
+   80 CONTINUE
+C
+C     PERFORM THE HOUSEHOLDER REDUCTION OF X.
+C
+      LUP = MIN0(N,P)
+      DO 200 L = 1, LUP
+         IF (L .LT. PL .OR. L .GE. PU) GO TO 120
+C
+C           LOCATE THE COLUMN OF LARGEST NORM AND BRING IT
+C           INTO THE PIVOT POSITION.
+C
+            MAXNRM = 0.0D0
+            MAXJ = L
+            DO 100 J = L, PU
+               IF (QRAUX(J) .LE. MAXNRM) GO TO 90
+                  MAXNRM = QRAUX(J)
+                  MAXJ = J
+   90          CONTINUE
+  100       CONTINUE
+            IF (MAXJ .EQ. L) GO TO 110
+               CALL DSWAP(N,X(1,L),1,X(1,MAXJ),1)
+               QRAUX(MAXJ) = QRAUX(L)
+               WORK(MAXJ) = WORK(L)
+               JP = JPVT(MAXJ)
+               JPVT(MAXJ) = JPVT(L)
+               JPVT(L) = JP
+  110       CONTINUE
+  120    CONTINUE
+         QRAUX(L) = 0.0D0
+         IF (L .EQ. N) GO TO 190
+C
+C           COMPUTE THE HOUSEHOLDER TRANSFORMATION FOR COLUMN L.
+C
+            NRMXL = DNRM2(N-L+1,X(L,L),1)
+            IF (NRMXL .EQ. 0.0D0) GO TO 180
+               IF (X(L,L) .NE. 0.0D0) NRMXL = DSIGN(NRMXL,X(L,L))
+               CALL DSCAL(N-L+1,1.0D0/NRMXL,X(L,L),1)
+               X(L,L) = 1.0D0 + X(L,L)
+C
+C              APPLY THE TRANSFORMATION TO THE REMAINING COLUMNS,
+C              UPDATING THE NORMS.
+C
+               LP1 = L + 1
+               IF (P .LT. LP1) GO TO 170
+               DO 160 J = LP1, P
+                  T = -DDOT(N-L+1,X(L,L),1,X(L,J),1)/X(L,L)
+                  CALL DAXPY(N-L+1,T,X(L,L),1,X(L,J),1)
+                  IF (J .LT. PL .OR. J .GT. PU) GO TO 150
+                  IF (QRAUX(J) .EQ. 0.0D0) GO TO 150
+                     TT = 1.0D0 - (DABS(X(L,J))/QRAUX(J))**2
+                     TT = DMAX1(TT,0.0D0)
+                     T = TT
+                     TT = 1.0D0 + 0.05D0*TT*(QRAUX(J)/WORK(J))**2
+                     IF (TT .EQ. 1.0D0) GO TO 130
+                        QRAUX(J) = QRAUX(J)*DSQRT(T)
+                     GO TO 140
+  130                CONTINUE
+                        QRAUX(J) = DNRM2(N-L,X(L+1,J),1)
+                        WORK(J) = QRAUX(J)
+  140                CONTINUE
+  150             CONTINUE
+  160          CONTINUE
+  170          CONTINUE
+C
+C              SAVE THE TRANSFORMATION.
+C
+               QRAUX(L) = X(L,L)
+               X(L,L) = -NRMXL
+  180       CONTINUE
+  190    CONTINUE
+  200 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DQRSL(X,LDX,N,K,QRAUX,Y,QY,QTY,B,RSD,XB,JOB,INFO)
+      INTEGER LDX,N,K,JOB,INFO
+      DOUBLE PRECISION X(LDX,1),QRAUX(1),Y(1),QY(1),QTY(1),B(1),RSD(1),
+     *                 XB(1)
+C
+C     DQRSL APPLIES THE OUTPUT OF DQRDC TO COMPUTE COORDINATE
+C     TRANSFORMATIONS, PROJECTIONS, AND LEAST SQUARES SOLUTIONS.
+C     FOR K .LE. MIN(N,P), LET XK BE THE MATRIX
+C
+C            XK = (X(JPVT(1)),X(JPVT(2)), ... ,X(JPVT(K)))
+C
+C     FORMED FROM COLUMNNS JPVT(1), ... ,JPVT(K) OF THE ORIGINAL
+C     N X P MATRIX X THAT WAS INPUT TO DQRDC (IF NO PIVOTING WAS
+C     DONE, XK CONSISTS OF THE FIRST K COLUMNS OF X IN THEIR
+C     ORIGINAL ORDER).  DQRDC PRODUCES A FACTORED ORTHOGONAL MATRIX Q
+C     AND AN UPPER TRIANGULAR MATRIX R SUCH THAT
+C
+C              XK = Q * (R)
+C                       (0)
+C
+C     THIS INFORMATION IS CONTAINED IN CODED FORM IN THE ARRAYS
+C     X AND QRAUX.
+C
+C     ON ENTRY
+C
+C        X      DOUBLE PRECISION(LDX,P).
+C               X CONTAINS THE OUTPUT OF DQRDC.
+C
+C        LDX    INTEGER.
+C               LDX IS THE LEADING DIMENSION OF THE ARRAY X.
+C
+C        N      INTEGER.
+C               N IS THE NUMBER OF ROWS OF THE MATRIX XK.  IT MUST
+C               HAVE THE SAME VALUE AS N IN DQRDC.
+C
+C        K      INTEGER.
+C               K IS THE NUMBER OF COLUMNS OF THE MATRIX XK.  K
+C               MUST NNOT BE GREATER THAN MIN(N,P), WHERE P IS THE
+C               SAME AS IN THE CALLING SEQUENCE TO DQRDC.
+C
+C        QRAUX  DOUBLE PRECISION(P).
+C               QRAUX CONTAINS THE AUXILIARY OUTPUT FROM DQRDC.
+C
+C        Y      DOUBLE PRECISION(N)
+C               Y CONTAINS AN N-VECTOR THAT IS TO BE MANIPULATED
+C               BY DQRSL.
+C
+C        JOB    INTEGER.
+C               JOB SPECIFIES WHAT IS TO BE COMPUTED.  JOB HAS
+C               THE DECIMAL EXPANSION ABCDE, WITH THE FOLLOWING
+C               MEANING.
+C
+C                    IF A.NE.0, COMPUTE QY.
+C                    IF B,C,D, OR E .NE. 0, COMPUTE QTY.
+C                    IF C.NE.0, COMPUTE B.
+C                    IF D.NE.0, COMPUTE RSD.
+C                    IF E.NE.0, COMPUTE XB.
+C
+C               NOTE THAT A REQUEST TO COMPUTE B, RSD, OR XB
+C               AUTOMATICALLY TRIGGERS THE COMPUTATION OF QTY, FOR
+C               WHICH AN ARRAY MUST BE PROVIDED IN THE CALLING
+C               SEQUENCE.
+C
+C     ON RETURN
+C
+C        QY     DOUBLE PRECISION(N).
+C               QY CONNTAINS Q*Y, IF ITS COMPUTATION HAS BEEN
+C               REQUESTED.
+C
+C        QTY    DOUBLE PRECISION(N).
+C               QTY CONTAINS TRANS(Q)*Y, IF ITS COMPUTATION HAS
+C               BEEN REQUESTED.  HERE TRANS(Q) IS THE
+C               TRANSPOSE OF THE MATRIX Q.
+C
+C        B      DOUBLE PRECISION(K)
+C               B CONTAINS THE SOLUTION OF THE LEAST SQUARES PROBLEM
+C
+C                    MINIMIZE NORM2(Y - XK*B),
+C
+C               IF ITS COMPUTATION HAS BEEN REQUESTED.  (NOTE THAT
+C               IF PIVOTING WAS REQUESTED IN DQRDC, THE J-TH
+C               COMPONENT OF B WILL BE ASSOCIATED WITH COLUMN JPVT(J)
+C               OF THE ORIGINAL MATRIX X THAT WAS INPUT INTO DQRDC.)
+C
+C        RSD    DOUBLE PRECISION(N).
+C               RSD CONTAINS THE LEAST SQUARES RESIDUAL Y - XK*B,
+C               IF ITS COMPUTATION HAS BEEN REQUESTED.  RSD IS
+C               ALSO THE ORTHOGONAL PROJECTION OF Y ONTO THE
+C               ORTHOGONAL COMPLEMENT OF THE COLUMN SPACE OF XK.
+C
+C        XB     DOUBLE PRECISION(N).
+C               XB CONTAINS THE LEAST SQUARES APPROXIMATION XK*B,
+C               IF ITS COMPUTATION HAS BEEN REQUESTED.  XB IS ALSO
+C               THE ORTHOGONAL PROJECTION OF Y ONTO THE COLUMN SPACE
+C               OF X.
+C
+C        INFO   INTEGER.
+C               INFO IS ZERO UNLESS THE COMPUTATION OF B HAS
+C               BEEN REQUESTED AND R IS EXACTLY SINGULAR.  IN
+C               THIS CASE, INFO IS THE INDEX OF THE FIRST ZERO
+C               DIAGONAL ELEMENT OF R AND B IS LEFT UNALTERED.
+C
+C     THE PARAMETERS QY, QTY, B, RSD, AND XB ARE NOT REFERENCED
+C     IF THEIR COMPUTATION IS NOT REQUESTED AND IN THIS CASE
+C     CAN BE REPLACED BY DUMMY VARIABLES IN THE CALLING PROGRAM.
+C     TO SAVE STORAGE, THE USER MAY IN SOME CASES USE THE SAME
+C     ARRAY FOR DIFFERENT PARAMETERS IN THE CALLING SEQUENCE.  A
+C     FREQUENTLY OCCURING EXAMPLE IS WHEN ONE WISHES TO COMPUTE
+C     ANY OF B, RSD, OR XB AND DOES NOT NEED Y OR QTY.  IN THIS
+C     CASE ONE MAY IDENTIFY Y, QTY, AND ONE OF B, RSD, OR XB, WHILE
+C     PROVIDING SEPARATE ARRAYS FOR ANYTHING ELSE THAT IS TO BE
+C     COMPUTED.  THUS THE CALLING SEQUENCE
+C
+C          CALL DQRSL(X,LDX,N,K,QRAUX,Y,DUM,Y,B,Y,DUM,110,INFO)
+C
+C     WILL RESULT IN THE COMPUTATION OF B AND RSD, WITH RSD
+C     OVERWRITING Y.  MORE GENERALLY, EACH ITEM IN THE FOLLOWING
+C     LIST CONTAINS GROUPS OF PERMISSIBLE IDENTIFICATIONS FOR
+C     A SINGLE CALLINNG SEQUENCE.
+C
+C          1. (Y,QTY,B) (RSD) (XB) (QY)
+C
+C          2. (Y,QTY,RSD) (B) (XB) (QY)
+C
+C          3. (Y,QTY,XB) (B) (RSD) (QY)
+C
+C          4. (Y,QY) (QTY,B) (RSD) (XB)
+C
+C          5. (Y,QY) (QTY,RSD) (B) (XB)
+C
+C          6. (Y,QY) (QTY,XB) (B) (RSD)
+C
+C     IN ANY GROUP THE VALUE RETURNED IN THE ARRAY ALLOCATED TO
+C     THE GROUP CORRESPONDS TO THE LAST MEMBER OF THE GROUP.
+C
+C     LINPACK. THIS VERSION DATED 08/14/78 .
+C     G.W. STEWART, UNIVERSITY OF MARYLAND, ARGONNE NATIONAL LAB.
+C
+C     DQRSL USES THE FOLLOWING FUNCTIONS AND SUBPROGRAMS.
+C
+C     BLAS DAXPY,DCOPY,DDOT
+C     FORTRAN DABS,MIN0,MOD
+C
+C     INTERNAL VARIABLES
+C
+      INTEGER I,J,JJ,JU,KP1
+      DOUBLE PRECISION DDOT,T,TEMP
+      LOGICAL CB,CQY,CQTY,CR,CXB
+C
+C
+C     SET INFO FLAG.
+C
+      INFO = 0
+C
+C     DETERMINE WHAT IS TO BE COMPUTED.
+C
+      CQY = JOB/10000 .NE. 0
+      CQTY = MOD(JOB,10000) .NE. 0
+      CB = MOD(JOB,1000)/100 .NE. 0
+      CR = MOD(JOB,100)/10 .NE. 0
+      CXB = MOD(JOB,10) .NE. 0
+      JU = MIN0(K,N-1)
+C
+C     SPECIAL ACTION WHEN N=1.
+C
+      IF (JU .NE. 0) GO TO 40
+         IF (CQY) QY(1) = Y(1)
+         IF (CQTY) QTY(1) = Y(1)
+         IF (CXB) XB(1) = Y(1)
+         IF (.NOT.CB) GO TO 30
+            IF (X(1,1) .NE. 0.0D0) GO TO 10
+               INFO = 1
+            GO TO 20
+   10       CONTINUE
+               B(1) = Y(1)/X(1,1)
+   20       CONTINUE
+   30    CONTINUE
+         IF (CR) RSD(1) = 0.0D0
+      GO TO 250
+   40 CONTINUE
+C
+C        SET UP TO COMPUTE QY OR QTY.
+C
+         IF (CQY) CALL DCOPY(N,Y,1,QY,1)
+         IF (CQTY) CALL DCOPY(N,Y,1,QTY,1)
+         IF (.NOT.CQY) GO TO 70
+C
+C           COMPUTE QY.
+C
+            DO 60 JJ = 1, JU
+               J = JU - JJ + 1
+               IF (QRAUX(J) .EQ. 0.0D0) GO TO 50
+                  TEMP = X(J,J)
+                  X(J,J) = QRAUX(J)
+                  T = -DDOT(N-J+1,X(J,J),1,QY(J),1)/X(J,J)
+                  CALL DAXPY(N-J+1,T,X(J,J),1,QY(J),1)
+                  X(J,J) = TEMP
+   50          CONTINUE
+   60       CONTINUE
+   70    CONTINUE
+         IF (.NOT.CQTY) GO TO 100
+C
+C           COMPUTE TRANS(Q)*Y.
+C
+            DO 90 J = 1, JU
+               IF (QRAUX(J) .EQ. 0.0D0) GO TO 80
+                  TEMP = X(J,J)
+                  X(J,J) = QRAUX(J)
+                  T = -DDOT(N-J+1,X(J,J),1,QTY(J),1)/X(J,J)
+                  CALL DAXPY(N-J+1,T,X(J,J),1,QTY(J),1)
+                  X(J,J) = TEMP
+   80          CONTINUE
+   90       CONTINUE
+  100    CONTINUE
+C
+C        SET UP TO COMPUTE B, RSD, OR XB.
+C
+         IF (CB) CALL DCOPY(K,QTY,1,B,1)
+         KP1 = K + 1
+         IF (CXB) CALL DCOPY(K,QTY,1,XB,1)
+         IF (CR .AND. K .LT. N) CALL DCOPY(N-K,QTY(KP1),1,RSD(KP1),1)
+         IF (.NOT.CXB .OR. KP1 .GT. N) GO TO 120
+            DO 110 I = KP1, N
+               XB(I) = 0.0D0
+  110       CONTINUE
+  120    CONTINUE
+         IF (.NOT.CR) GO TO 140
+            DO 130 I = 1, K
+               RSD(I) = 0.0D0
+  130       CONTINUE
+  140    CONTINUE
+         IF (.NOT.CB) GO TO 190
+C
+C           COMPUTE B.
+C
+            DO 170 JJ = 1, K
+               J = K - JJ + 1
+               IF (X(J,J) .NE. 0.0D0) GO TO 150
+                  INFO = J
+C           ......EXIT
+                  GO TO 180
+  150          CONTINUE
+               B(J) = B(J)/X(J,J)
+               IF (J .EQ. 1) GO TO 160
+                  T = -B(J)
+                  CALL DAXPY(J-1,T,X(1,J),1,B,1)
+  160          CONTINUE
+  170       CONTINUE
+  180       CONTINUE
+  190    CONTINUE
+         IF (.NOT.CR .AND. .NOT.CXB) GO TO 240
+C
+C           COMPUTE RSD OR XB AS REQUIRED.
+C
+            DO 230 JJ = 1, JU
+               J = JU - JJ + 1
+               IF (QRAUX(J) .EQ. 0.0D0) GO TO 220
+                  TEMP = X(J,J)
+                  X(J,J) = QRAUX(J)
+                  IF (.NOT.CR) GO TO 200
+                     T = -DDOT(N-J+1,X(J,J),1,RSD(J),1)/X(J,J)
+                     CALL DAXPY(N-J+1,T,X(J,J),1,RSD(J),1)
+  200             CONTINUE
+                  IF (.NOT.CXB) GO TO 210
+                     T = -DDOT(N-J+1,X(J,J),1,XB(J),1)/X(J,J)
+                     CALL DAXPY(N-J+1,T,X(J,J),1,XB(J),1)
+  210             CONTINUE
+                  X(J,J) = TEMP
+  220          CONTINUE
+  230       CONTINUE
+  240    CONTINUE
+  250 CONTINUE
+      RETURN
+      END
+      SUBROUTINE  DROT (N,DX,INCX,DY,INCY,C,S)
+C
+C     APPLIES A PLANE ROTATION.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DY(1),DTEMP,C,S
+      INTEGER I,INCX,INCY,IX,IY,N
+C
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+C
+C       CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS NOT EQUAL
+C         TO 1
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+        DTEMP = C*DX(IX) + S*DY(IY)
+        DY(IY) = C*DY(IY) - S*DX(IX)
+        DX(IX) = DTEMP
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      RETURN
+C
+C       CODE FOR BOTH INCREMENTS EQUAL TO 1
+C
+   20 DO 30 I = 1,N
+        DTEMP = C*DX(I) + S*DY(I)
+        DY(I) = C*DY(I) - S*DX(I)
+        DX(I) = DTEMP
+   30 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DROTG(DA,DB,C,S)
+C
+C     CONSTRUCT GIVENS PLANE ROTATION.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DA,DB,C,S,ROE,SCALE,R,Z
+C
+      ROE = DB
+      IF( DABS(DA) .GT. DABS(DB) ) ROE = DA
+      SCALE = DABS(DA) + DABS(DB)
+      IF( SCALE .NE. 0.0D0 ) GO TO 10
+         C = 1.0D0
+         S = 0.0D0
+         R = 0.0D0
+         GO TO 20
+   10 R = SCALE*DSQRT((DA/SCALE)**2 + (DB/SCALE)**2)
+      R = DSIGN(1.0D0,ROE)*R
+      C = DA/R
+      S = DB/R
+   20 Z = 1.0D0
+      IF( DABS(DA) .GT. DABS(DB) ) Z = S
+      IF( DABS(DB) .GE. DABS(DA) .AND. C .NE. 0.0D0 ) Z = 1.0D0/C
+      DA = R
+      DB = Z
+      RETURN
+      END
+      SUBROUTINE  DSCAL(N,DA,DX,INCX)
+C
+C     SCALES A VECTOR BY A CONSTANT.
+C     USES UNROLLED LOOPS FOR INCREMENT EQUAL TO ONE.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DA,DX(1)
+      INTEGER I,INCX,M,MP1,N,NINCX
+C
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1)GO TO 20
+C
+C        CODE FOR INCREMENT NOT EQUAL TO 1
+C
+      NINCX = N*INCX
+      DO 10 I = 1,NINCX,INCX
+        DX(I) = DA*DX(I)
+   10 CONTINUE
+      RETURN
+C
+C        CODE FOR INCREMENT EQUAL TO 1
+C
+C
+C        CLEAN-UP LOOP
+C
+   20 M = MOD(N,5)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DX(I) = DA*DX(I)
+   30 CONTINUE
+      IF( N .LT. 5 ) RETURN
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,5
+        DX(I) = DA*DX(I)
+        DX(I + 1) = DA*DX(I + 1)
+        DX(I + 2) = DA*DX(I + 2)
+        DX(I + 3) = DA*DX(I + 3)
+        DX(I + 4) = DA*DX(I + 4)
+   50 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DSVDC(X,LDX,N,P,S,E,U,LDU,V,LDV,WORK,JOB,INFO)
+      INTEGER LDX,N,P,LDU,LDV,JOB,INFO
+      DOUBLE PRECISION X(LDX,1),S(1),E(1),U(LDU,1),V(LDV,1),WORK(1)
+C
+C
+C     DSVDC IS A SUBROUTINE TO REDUCE A DOUBLE PRECISION NXP MATRIX X
+C     BY ORTHOGONAL TRANSFORMATIONS U AND V TO DIAGONAL FORM.  THE
+C     DIAGONAL ELEMENTS S(I) ARE THE SINGULAR VALUES OF X.  THE
+C     COLUMNS OF U ARE THE CORRESPONDING LEFT SINGULAR VECTORS,
+C     AND THE COLUMNS OF V THE RIGHT SINGULAR VECTORS.
+C
+C     ON ENTRY
+C
+C         X         DOUBLE PRECISION(LDX,P), WHERE LDX.GE.N.
+C                   X CONTAINS THE MATRIX WHOSE SINGULAR VALUE
+C                   DECOMPOSITION IS TO BE COMPUTED.  X IS
+C                   DESTROYED BY DSVDC.
+C
+C         LDX       INTEGER.
+C                   LDX IS THE LEADING DIMENSION OF THE ARRAY X.
+C
+C         N         INTEGER.
+C                   N IS THE NUMBER OF COLUMNS OF THE MATRIX X.
+C
+C         P         INTEGER.
+C                   P IS THE NUMBER OF ROWS OF THE MATRIX X.
+C
+C         LDU       INTEGER.
+C                   LDU IS THE LEADING DIMENSION OF THE ARRAY U.
+C                   (SEE BELOW).
+C
+C         LDV       INTEGER.
+C                   LDV IS THE LEADING DIMENSION OF THE ARRAY V.
+C                   (SEE BELOW).
+C
+C         WORK      DOUBLE PRECISION(N).
+C                   WORK IS A SCRATCH ARRAY.
+C
+C         JOB       INTEGER.
+C                   JOB CONTROLS THE COMPUTATION OF THE SINGULAR
+C                   VECTORS.  IT HAS THE DECIMAL EXPANSION AB
+C                   WITH THE FOLLOWING MEANING
+C
+C                        A.EQ.0    DO NOT COMPUTE THE LEFT SINGULAR
+C                                  VECTORS.
+C                        A.EQ.1    RETURN THE N LEFT SINGULAR VECTORS
+C                                  IN U.
+C                        A.GE.2    RETURN THE FIRST MIN(N,P) SINGULAR
+C                                  VECTORS IN U.
+C                        B.EQ.0    DO NOT COMPUTE THE RIGHT SINGULAR
+C                                  VECTORS.
+C                        B.EQ.1    RETURN THE RIGHT SINGULAR VECTORS
+C                                  IN V.
+C
+C     ON RETURN
+C
+C         S         DOUBLE PRECISION(MM), WHERE MM=MIN(N+1,P).
+C                   THE FIRST MIN(N,P) ENTRIES OF S CONTAIN THE
+C                   SINGULAR VALUES OF X ARRANGED IN DESCENDING
+C                   ORDER OF MAGNITUDE.
+C
+C         E         DOUBLE PRECISION(P).
+C                   E ORDINARILY CONTAINS ZEROS.  HOWEVER SEE THE
+C                   DISCUSSION OF INFO FOR EXCEPTIONS.
+C
+C         U         DOUBLE PRECISION(LDU,K), WHERE LDU.GE.N.  IF
+C                                   JOBA.EQ.1 THEN K.EQ.N, IF JOBA.GE.2
+C                                   THEN K.EQ.MIN(N,P).
+C                   U CONTAINS THE MATRIX OF RIGHT SINGULAR VECTORS.
+C                   U IS NOT REFERENCED IF JOBA.EQ.0.  IF N.LE.P
+C                   OR IF JOBA.EQ.2, THEN U MAY BE IDENTIFIED WITH X
+C                   IN THE SUBROUTINE CALL.
+C
+C         V         DOUBLE PRECISION(LDV,P), WHERE LDV.GE.P.
+C                   V CONTAINS THE MATRIX OF RIGHT SINGULAR VECTORS.
+C                   V IS NOT REFERENCED IF JOB.EQ.0.  IF P.LE.N,
+C                   THEN V MAY BE IDENTIFIED WITH X IN THE
+C                   SUBROUTINE CALL.
+C
+C         INFO      INTEGER.
+C                   THE SINGULAR VALUES (AND THEIR CORRESPONDING
+C                   SINGULAR VECTORS) S(INFO+1),S(INFO+2),...,S(M)
+C                   ARE CORRECT (HERE M=MIN(N,P)).  THUS IF
+C                   INFO.EQ.0, ALL THE SINGULAR VALUES AND THEIR
+C                   VECTORS ARE CORRECT.  IN ANY EVENT, THE MATRIX
+C                   B = TRANS(U)*X*V IS THE BIDIAGONAL MATRIX
+C                   WITH THE ELEMENTS OF S ON ITS DIAGONAL AND THE
+C                   ELEMENTS OF E ON ITS SUPER-DIAGONAL (TRANS(U)
+C                   IS THE TRANSPOSE OF U).  THUS THE SINGULAR
+C                   VALUES OF X AND B ARE THE SAME.
+C
+C     LINPACK. THIS VERSION DATED 03/19/79 .
+C     G.W. STEWART, UNIVERSITY OF MARYLAND, ARGONNE NATIONAL LAB.
+C
+C     DSVDC USES THE FOLLOWING FUNCTIONS AND SUBPROGRAMS.
+C
+C     EXTERNAL DROT
+C     BLAS DAXPY,DDOT,DSCAL,DSWAP,DNRM2,DROTG
+C     FORTRAN DABS,DMAX1,MAX0,MIN0,MOD,DSQRT
+C
+C     INTERNAL VARIABLES
+C
+      INTEGER I,ITER,J,JOBU,K,KASE,KK,L,LL,LLS,LM1,LP1,LS,LU,M,MAXIT,
+     *        MM,MM1,MP1,NCT,NCTP1,NCU,NRT,NRTP1
+      DOUBLE PRECISION DDOT,T
+      DOUBLE PRECISION B,C,CS,EL,EMM1,F,G,DNRM2,SCALE,SHIFT,SL,SM,SN,
+     *                 SMM1,T1,TEST,ZTEST
+      LOGICAL WANTU,WANTV
+C
+C
+C     SET THE MAXIMUM NUMBER OF ITERATIONS.
+C
+      MAXIT = 30
+C
+C     DETERMINE WHAT IS TO BE COMPUTED.
+C
+      WANTU = .FALSE.
+      WANTV = .FALSE.
+      JOBU = MOD(JOB,100)/10
+      NCU = N
+      IF (JOBU .GT. 1) NCU = MIN0(N,P)
+      IF (JOBU .NE. 0) WANTU = .TRUE.
+      IF (MOD(JOB,10) .NE. 0) WANTV = .TRUE.
+C
+C     REDUCE X TO BIDIAGONAL FORM, STORING THE DIAGONAL ELEMENTS
+C     IN S AND THE SUPER-DIAGONAL ELEMENTS IN E.
+C
+      INFO = 0
+      NCT = MIN0(N-1,P)
+      NRT = MAX0(0,MIN0(P-2,N))
+      LU = MAX0(NCT,NRT)
+      IF (LU .LT. 1) GO TO 170
+      DO 160 L = 1, LU
+         LP1 = L + 1
+         IF (L .GT. NCT) GO TO 20
+C
+C           COMPUTE THE TRANSFORMATION FOR THE L-TH COLUMN AND
+C           PLACE THE L-TH DIAGONAL IN S(L).
+C
+            S(L) = DNRM2(N-L+1,X(L,L),1)
+            IF (S(L) .EQ. 0.0D0) GO TO 10
+               IF (X(L,L) .NE. 0.0D0) S(L) = DSIGN(S(L),X(L,L))
+               CALL DSCAL(N-L+1,1.0D0/S(L),X(L,L),1)
+               X(L,L) = 1.0D0 + X(L,L)
+   10       CONTINUE
+            S(L) = -S(L)
+   20    CONTINUE
+         IF (P .LT. LP1) GO TO 50
+         DO 40 J = LP1, P
+            IF (L .GT. NCT) GO TO 30
+            IF (S(L) .EQ. 0.0D0) GO TO 30
+C
+C              APPLY THE TRANSFORMATION.
+C
+               T = -DDOT(N-L+1,X(L,L),1,X(L,J),1)/X(L,L)
+               CALL DAXPY(N-L+1,T,X(L,L),1,X(L,J),1)
+   30       CONTINUE
+C
+C           PLACE THE L-TH ROW OF X INTO  E FOR THE
+C           SUBSEQUENT CALCULATION OF THE ROW TRANSFORMATION.
+C
+            E(J) = X(L,J)
+   40    CONTINUE
+   50    CONTINUE
+         IF (.NOT.WANTU .OR. L .GT. NCT) GO TO 70
+C
+C           PLACE THE TRANSFORMATION IN U FOR SUBSEQUENT BACK
+C           MULTIPLICATION.
+C
+            DO 60 I = L, N
+               U(I,L) = X(I,L)
+   60       CONTINUE
+   70    CONTINUE
+         IF (L .GT. NRT) GO TO 150
+C
+C           COMPUTE THE L-TH ROW TRANSFORMATION AND PLACE THE
+C           L-TH SUPER-DIAGONAL IN E(L).
+C
+            E(L) = DNRM2(P-L,E(LP1),1)
+            IF (E(L) .EQ. 0.0D0) GO TO 80
+               IF (E(LP1) .NE. 0.0D0) E(L) = DSIGN(E(L),E(LP1))
+               CALL DSCAL(P-L,1.0D0/E(L),E(LP1),1)
+               E(LP1) = 1.0D0 + E(LP1)
+   80       CONTINUE
+            E(L) = -E(L)
+            IF (LP1 .GT. N .OR. E(L) .EQ. 0.0D0) GO TO 120
+C
+C              APPLY THE TRANSFORMATION.
+C
+               DO 90 I = LP1, N
+                  WORK(I) = 0.0D0
+   90          CONTINUE
+               DO 100 J = LP1, P
+                  CALL DAXPY(N-L,E(J),X(LP1,J),1,WORK(LP1),1)
+  100          CONTINUE
+               DO 110 J = LP1, P
+                  CALL DAXPY(N-L,-E(J)/E(LP1),WORK(LP1),1,X(LP1,J),1)
+  110          CONTINUE
+  120       CONTINUE
+            IF (.NOT.WANTV) GO TO 140
+C
+C              PLACE THE TRANSFORMATION IN V FOR SUBSEQUENT
+C              BACK MULTIPLICATION.
+C
+               DO 130 I = LP1, P
+                  V(I,L) = E(I)
+  130          CONTINUE
+  140       CONTINUE
+  150    CONTINUE
+  160 CONTINUE
+  170 CONTINUE
+C
+C     SET UP THE FINAL BIDIAGONAL MATRIX OR ORDER M.
+C
+      M = MIN0(P,N+1)
+      NCTP1 = NCT + 1
+      NRTP1 = NRT + 1
+      IF (NCT .LT. P) S(NCTP1) = X(NCTP1,NCTP1)
+      IF (N .LT. M) S(M) = 0.0D0
+      IF (NRTP1 .LT. M) E(NRTP1) = X(NRTP1,M)
+      E(M) = 0.0D0
+C
+C     IF REQUIRED, GENERATE U.
+C
+      IF (.NOT.WANTU) GO TO 300
+         IF (NCU .LT. NCTP1) GO TO 200
+         DO 190 J = NCTP1, NCU
+            DO 180 I = 1, N
+               U(I,J) = 0.0D0
+  180       CONTINUE
+            U(J,J) = 1.0D0
+  190    CONTINUE
+  200    CONTINUE
+         IF (NCT .LT. 1) GO TO 290
+         DO 280 LL = 1, NCT
+            L = NCT - LL + 1
+            IF (S(L) .EQ. 0.0D0) GO TO 250
+               LP1 = L + 1
+               IF (NCU .LT. LP1) GO TO 220
+               DO 210 J = LP1, NCU
+                  T = -DDOT(N-L+1,U(L,L),1,U(L,J),1)/U(L,L)
+                  CALL DAXPY(N-L+1,T,U(L,L),1,U(L,J),1)
+  210          CONTINUE
+  220          CONTINUE
+               CALL DSCAL(N-L+1,-1.0D0,U(L,L),1)
+               U(L,L) = 1.0D0 + U(L,L)
+               LM1 = L - 1
+               IF (LM1 .LT. 1) GO TO 240
+               DO 230 I = 1, LM1
+                  U(I,L) = 0.0D0
+  230          CONTINUE
+  240          CONTINUE
+            GO TO 270
+  250       CONTINUE
+               DO 260 I = 1, N
+                  U(I,L) = 0.0D0
+  260          CONTINUE
+               U(L,L) = 1.0D0
+  270       CONTINUE
+  280    CONTINUE
+  290    CONTINUE
+  300 CONTINUE
+C
+C     IF IT IS REQUIRED, GENERATE V.
+C
+      IF (.NOT.WANTV) GO TO 350
+         DO 340 LL = 1, P
+            L = P - LL + 1
+            LP1 = L + 1
+            IF (L .GT. NRT) GO TO 320
+            IF (E(L) .EQ. 0.0D0) GO TO 320
+               DO 310 J = LP1, P
+                  T = -DDOT(P-L,V(LP1,L),1,V(LP1,J),1)/V(LP1,L)
+                  CALL DAXPY(P-L,T,V(LP1,L),1,V(LP1,J),1)
+  310          CONTINUE
+  320       CONTINUE
+            DO 330 I = 1, P
+               V(I,L) = 0.0D0
+  330       CONTINUE
+            V(L,L) = 1.0D0
+  340    CONTINUE
+  350 CONTINUE
+C
+C     MAIN ITERATION LOOP FOR THE SINGULAR VALUES.
+C
+      MM = M
+      ITER = 0
+  360 CONTINUE
+C
+C        QUIT IF ALL THE SINGULAR VALUES HAVE BEEN FOUND.
+C
+C     ...EXIT
+         IF (M .EQ. 0) GO TO 620
+C
+C        IF TOO MANY ITERATIONS HAVE BEEN PERFORMED, SET
+C        FLAG AND RETURN.
+C
+         IF (ITER .LT. MAXIT) GO TO 370
+            INFO = M
+C     ......EXIT
+            GO TO 620
+  370    CONTINUE
+C
+C        THIS SECTION OF THE PROGRAM INSPECTS FOR
+C        NEGLIGIBLE ELEMENTS IN THE S AND E ARRAYS.  ON
+C        COMPLETION THE VARIABLES KASE AND L ARE SET AS FOLLOWS.
+C
+C           KASE = 1     IF S(M) AND E(L-1) ARE NEGLIGIBLE AND L.LT.M
+C           KASE = 2     IF S(L) IS NEGLIGIBLE AND L.LT.M
+C           KASE = 3     IF E(L-1) IS NEGLIGIBLE, L.LT.M, AND
+C                        S(L), ..., S(M) ARE NOT NEGLIGIBLE (QR STEP).
+C           KASE = 4     IF E(M-1) IS NEGLIGIBLE (CONVERGENCE).
+C
+         DO 390 LL = 1, M
+            L = M - LL
+C        ...EXIT
+            IF (L .EQ. 0) GO TO 400
+            TEST = DABS(S(L)) + DABS(S(L+1))
+            ZTEST = TEST + DABS(E(L))
+            IF (ZTEST .NE. TEST) GO TO 380
+               E(L) = 0.0D0
+C        ......EXIT
+               GO TO 400
+  380       CONTINUE
+  390    CONTINUE
+  400    CONTINUE
+         IF (L .NE. M - 1) GO TO 410
+            KASE = 4
+         GO TO 480
+  410    CONTINUE
+            LP1 = L + 1
+            MP1 = M + 1
+            DO 430 LLS = LP1, MP1
+               LS = M - LLS + LP1
+C           ...EXIT
+               IF (LS .EQ. L) GO TO 440
+               TEST = 0.0D0
+               IF (LS .NE. M) TEST = TEST + DABS(E(LS))
+               IF (LS .NE. L + 1) TEST = TEST + DABS(E(LS-1))
+               ZTEST = TEST + DABS(S(LS))
+               IF (ZTEST .NE. TEST) GO TO 420
+                  S(LS) = 0.0D0
+C           ......EXIT
+                  GO TO 440
+  420          CONTINUE
+  430       CONTINUE
+  440       CONTINUE
+            IF (LS .NE. L) GO TO 450
+               KASE = 3
+            GO TO 470
+  450       CONTINUE
+            IF (LS .NE. M) GO TO 460
+               KASE = 1
+            GO TO 470
+  460       CONTINUE
+               KASE = 2
+               L = LS
+  470       CONTINUE
+  480    CONTINUE
+         L = L + 1
+C
+C        PERFORM THE TASK INDICATED BY KASE.
+C
+         GO TO (490,520,540,570), KASE
+C
+C        DEFLATE NEGLIGIBLE S(M).
+C
+  490    CONTINUE
+            MM1 = M - 1
+            F = E(M-1)
+            E(M-1) = 0.0D0
+            DO 510 KK = L, MM1
+               K = MM1 - KK + L
+               T1 = S(K)
+               CALL DROTG(T1,F,CS,SN)
+               S(K) = T1
+               IF (K .EQ. L) GO TO 500
+                  F = -SN*E(K-1)
+                  E(K-1) = CS*E(K-1)
+  500          CONTINUE
+               IF (WANTV) CALL DROT(P,V(1,K),1,V(1,M),1,CS,SN)
+  510       CONTINUE
+         GO TO 610
+C
+C        SPLIT AT NEGLIGIBLE S(L).
+C
+  520    CONTINUE
+            F = E(L-1)
+            E(L-1) = 0.0D0
+            DO 530 K = L, M
+               T1 = S(K)
+               CALL DROTG(T1,F,CS,SN)
+               S(K) = T1
+               F = -SN*E(K)
+               E(K) = CS*E(K)
+               IF (WANTU) CALL DROT(N,U(1,K),1,U(1,L-1),1,CS,SN)
+  530       CONTINUE
+         GO TO 610
+C
+C        PERFORM ONE QR STEP.
+C
+  540    CONTINUE
+C
+C           CALCULATE THE SHIFT.
+C
+            SCALE = DMAX1(DABS(S(M)),DABS(S(M-1)),DABS(E(M-1)),
+     *                    DABS(S(L)),DABS(E(L)))
+            SM = S(M)/SCALE
+            SMM1 = S(M-1)/SCALE
+            EMM1 = E(M-1)/SCALE
+            SL = S(L)/SCALE
+            EL = E(L)/SCALE
+            B = ((SMM1 + SM)*(SMM1 - SM) + EMM1**2)/2.0D0
+            C = (SM*EMM1)**2
+            SHIFT = 0.0D0
+            IF (B .EQ. 0.0D0 .AND. C .EQ. 0.0D0) GO TO 550
+               SHIFT = DSQRT(B**2+C)
+               IF (B .LT. 0.0D0) SHIFT = -SHIFT
+               SHIFT = C/(B + SHIFT)
+  550       CONTINUE
+C
+C	      I changed this line from - shift to + shift
+C	      This bug was communicated by Ake Bjork
+C	      Mike Meyer  jan 9 1984
+C           F = (SL + SM)*(SL - SM) - SHIFT
+C
+            F = (SL + SM)*(SL - SM) + SHIFT
+            G = SL*EL
+C
+C           CHASE ZEROS.
+C
+            MM1 = M - 1
+            DO 560 K = L, MM1
+               CALL DROTG(F,G,CS,SN)
+               IF (K .NE. L) E(K-1) = F
+               F = CS*S(K) + SN*E(K)
+               E(K) = CS*E(K) - SN*S(K)
+               G = SN*S(K+1)
+               S(K+1) = CS*S(K+1)
+               IF (WANTV) CALL DROT(P,V(1,K),1,V(1,K+1),1,CS,SN)
+               CALL DROTG(F,G,CS,SN)
+               S(K) = F
+               F = CS*E(K) + SN*S(K+1)
+               S(K+1) = -SN*E(K) + CS*S(K+1)
+               G = SN*E(K+1)
+               E(K+1) = CS*E(K+1)
+               IF (WANTU .AND. K .LT. N)
+     *            CALL DROT(N,U(1,K),1,U(1,K+1),1,CS,SN)
+  560       CONTINUE
+            E(M-1) = F
+            ITER = ITER + 1
+         GO TO 610
+C
+C        CONVERGENCE.
+C
+  570    CONTINUE
+C
+C           MAKE THE SINGULAR VALUE  POSITIVE.
+C
+            IF (S(L) .GE. 0.0D0) GO TO 580
+               S(L) = -S(L)
+               IF (WANTV) CALL DSCAL(P,-1.0D0,V(1,L),1)
+  580       CONTINUE
+C
+C           ORDER THE SINGULAR VALUE.
+C
+  590       IF (L .EQ. MM) GO TO 600
+C           ...EXIT
+               IF (S(L) .GE. S(L+1)) GO TO 600
+               T = S(L)
+               S(L) = S(L+1)
+               S(L+1) = T
+               IF (WANTV .AND. L .LT. P)
+     *            CALL DSWAP(P,V(1,L),1,V(1,L+1),1)
+               IF (WANTU .AND. L .LT. N)
+     *            CALL DSWAP(N,U(1,L),1,U(1,L+1),1)
+               L = L + 1
+            GO TO 590
+  600       CONTINUE
+            ITER = 0
+            M = M - 1
+  610    CONTINUE
+      GO TO 360
+  620 CONTINUE
+      RETURN
+      END
+      SUBROUTINE  DSWAP (N,DX,INCX,DY,INCY)
+C
+C     INTERCHANGES TWO VECTORS.
+C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL ONE.
+C     JACK DONGARRA, LINPACK, 3/11/78.
+C
+      DOUBLE PRECISION DX(1),DY(1),DTEMP
+      INTEGER I,INCX,INCY,IX,IY,M,MP1,N
+C
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+C
+C       CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS NOT EQUAL
+C         TO 1
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+        DTEMP = DX(IX)
+        DX(IX) = DY(IY)
+        DY(IY) = DTEMP
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      RETURN
+C
+C       CODE FOR BOTH INCREMENTS EQUAL TO 1
+C
+C
+C       CLEAN-UP LOOP
+C
+   20 M = MOD(N,3)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+        DTEMP = DX(I)
+        DX(I) = DY(I)
+        DY(I) = DTEMP
+   30 CONTINUE
+      IF( N .LT. 3 ) RETURN
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,3
+        DTEMP = DX(I)
+        DX(I) = DY(I)
+        DY(I) = DTEMP
+        DTEMP = DX(I + 1)
+        DX(I + 1) = DY(I + 1)
+        DY(I + 1) = DTEMP
+        DTEMP = DX(I + 2)
+        DX(I + 2) = DY(I + 2)
+        DY(I + 2) = DTEMP
+   50 CONTINUE
+      RETURN
+      END
+      SUBROUTINE DTRCO(T,LDT,N,RCOND,Z,JOB)
+      INTEGER LDT,N,JOB
+      DOUBLE PRECISION T(LDT,1),Z(1)
+      DOUBLE PRECISION RCOND
+C
+C     DTRCO ESTIMATES THE CONDITION OF A DOUBLE PRECISION TRIANGULAR
+C     MATRIX.
+C
+C     ON ENTRY
+C
+C        T       DOUBLE PRECISION(LDT,N)
+C                T CONTAINS THE TRIANGULAR MATRIX. THE ZERO
+C                ELEMENTS OF THE MATRIX ARE NOT REFERENCED, AND
+C                THE CORRESPONDING ELEMENTS OF THE ARRAY CAN BE
+C                USED TO STORE OTHER INFORMATION.
+C
+C        LDT     INTEGER
+C                LDT IS THE LEADING DIMENSION OF THE ARRAY T.
+C
+C        N       INTEGER
+C                N IS THE ORDER OF THE SYSTEM.
+C
+C        JOB     INTEGER
+C                = 0         T  IS LOWER TRIANGULAR.
+C                = NONZERO   T  IS UPPER TRIANGULAR.
+C
+C     ON RETURN
+C
+C        RCOND   DOUBLE PRECISION
+C                AN ESTIMATE OF THE RECIPROCAL CONDITION OF  T .
+C                FOR THE SYSTEM  T*X = B , RELATIVE PERTURBATIONS
+C                IN  T  AND  B  OF SIZE  EPSILON  MAY CAUSE
+C                RELATIVE PERTURBATIONS IN  X  OF SIZE  EPSILON/RCOND .
+C                IF  RCOND  IS SO SMALL THAT THE LOGICAL EXPRESSION
+C                           1.0 + RCOND .EQ. 1.0
+C                IS TRUE, THEN  T  MAY BE SINGULAR TO WORKING
+C                PRECISION.  IN PARTICULAR,  RCOND  IS ZERO  IF
+C                EXACT SINGULARITY IS DETECTED OR THE ESTIMATE
+C                UNDERFLOWS.
+C
+C        Z       DOUBLE PRECISION(N)
+C                A WORK VECTOR WHOSE CONTENTS ARE USUALLY UNIMPORTANT.
+C                IF  T  IS CLOSE TO A SINGULAR MATRIX, THEN  Z  IS
+C                AN APPROXIMATE NULL VECTOR IN THE SENSE THAT
+C                NORM(A*Z) = RCOND*NORM(A)*NORM(Z) .
+C
+C     LINPACK. THIS VERSION DATED 08/14/78 .
+C     CLEVE MOLER, UNIVERSITY OF NEW MEXICO, ARGONNE NATIONAL LAB.
+C
+C     SUBROUTINES AND FUNCTIONS
+C
+C     BLAS DAXPY,DSCAL,DASUM
+C     FORTRAN DABS,DMAX1,DSIGN
+C
+C     INTERNAL VARIABLES
+C
+      DOUBLE PRECISION W,WK,WKM,EK
+      DOUBLE PRECISION TNORM,YNORM,S,SM,DASUM
+      INTEGER I1,J,J1,J2,K,KK,L
+      LOGICAL LOWER
+C
+      LOWER = JOB .EQ. 0
+C
+C     COMPUTE 1-NORM OF T
+C
+      TNORM = 0.0D0
+      DO 10 J = 1, N
+         L = J
+         IF (LOWER) L = N + 1 - J
+         I1 = 1
+         IF (LOWER) I1 = J
+         TNORM = DMAX1(TNORM,DASUM(L,T(I1,J),1))
+   10 CONTINUE
+C
+C     RCOND = 1/(NORM(T)*(ESTIMATE OF NORM(INVERSE(T)))) .
+C     ESTIMATE = NORM(Z)/NORM(Y) WHERE  T*Z = Y  AND  TRANS(T)*Y = E .
+C     TRANS(T)  IS THE TRANSPOSE OF T .
+C     THE COMPONENTS OF  E  ARE CHOSEN TO CAUSE MAXIMUM LOCAL
+C     GROWTH IN THE ELEMENTS OF Y .
+C     THE VECTORS ARE FREQUENTLY RESCALED TO AVOID OVERFLOW.
+C
+C     SOLVE TRANS(T)*Y = E
+C
+      EK = 1.0D0
+      DO 20 J = 1, N
+         Z(J) = 0.0D0
+   20 CONTINUE
+      DO 100 KK = 1, N
+         K = KK
+         IF (LOWER) K = N + 1 - KK
+         IF (Z(K) .NE. 0.0D0) EK = DSIGN(EK,-Z(K))
+         IF (DABS(EK-Z(K)) .LE. DABS(T(K,K))) GO TO 30
+            S = DABS(T(K,K))/DABS(EK-Z(K))
+            CALL DSCAL(N,S,Z,1)
+            EK = S*EK
+   30    CONTINUE
+         WK = EK - Z(K)
+         WKM = -EK - Z(K)
+         S = DABS(WK)
+         SM = DABS(WKM)
+         IF (T(K,K) .EQ. 0.0D0) GO TO 40
+            WK = WK/T(K,K)
+            WKM = WKM/T(K,K)
+         GO TO 50
+   40    CONTINUE
+            WK = 1.0D0
+            WKM = 1.0D0
+   50    CONTINUE
+         IF (KK .EQ. N) GO TO 90
+            J1 = K + 1
+            IF (LOWER) J1 = 1
+            J2 = N
+            IF (LOWER) J2 = K - 1
+            DO 60 J = J1, J2
+               SM = SM + DABS(Z(J)+WKM*T(K,J))
+               Z(J) = Z(J) + WK*T(K,J)
+               S = S + DABS(Z(J))
+   60       CONTINUE
+            IF (S .GE. SM) GO TO 80
+               W = WKM - WK
+               WK = WKM
+               DO 70 J = J1, J2
+                  Z(J) = Z(J) + W*T(K,J)
+   70          CONTINUE
+   80       CONTINUE
+   90    CONTINUE
+         Z(K) = WK
+  100 CONTINUE
+      S = 1.0D0/DASUM(N,Z,1)
+      CALL DSCAL(N,S,Z,1)
+C
+      YNORM = 1.0D0
+C
+C     SOLVE T*Z = Y
+C
+      DO 130 KK = 1, N
+         K = N + 1 - KK
+         IF (LOWER) K = KK
+         IF (DABS(Z(K)) .LE. DABS(T(K,K))) GO TO 110
+            S = DABS(T(K,K))/DABS(Z(K))
+            CALL DSCAL(N,S,Z,1)
+            YNORM = S*YNORM
+  110    CONTINUE
+         IF (T(K,K) .NE. 0.0D0) Z(K) = Z(K)/T(K,K)
+         IF (T(K,K) .EQ. 0.0D0) Z(K) = 1.0D0
+         I1 = 1
+         IF (LOWER) I1 = K + 1
+         IF (KK .GE. N) GO TO 120
+            W = -Z(K)
+            CALL DAXPY(N-KK,W,T(I1,K),1,Z(I1),1)
+  120    CONTINUE
+  130 CONTINUE
+C     MAKE ZNORM = 1.0
+      S = 1.0D0/DASUM(N,Z,1)
+      CALL DSCAL(N,S,Z,1)
+      YNORM = S*YNORM
+C
+      IF (TNORM .NE. 0.0D0) RCOND = YNORM/TNORM
+      IF (TNORM .EQ. 0.0D0) RCOND = 0.0D0
+      RETURN
+      END
+      SUBROUTINE DTRSL(T,LDT,N,B,JOB,INFO)
+      INTEGER LDT,N,JOB,INFO
+      DOUBLE PRECISION T(LDT,1),B(1)
+C
+C
+C     DTRSL SOLVES SYSTEMS OF THE FORM
+C
+C                   T * X = B
+C     OR
+C                   TRANS(T) * X = B
+C
+C     WHERE T IS A TRIANGULAR MATRIX OF ORDER N. HERE TRANS(T)
+C     DENOTES THE TRANSPOSE OF THE MATRIX T.
+C
+C     ON ENTRY
+C
+C         T         DOUBLE PRECISION(LDT,N)
+C                   T CONTAINS THE MATRIX OF THE SYSTEM. THE ZERO
+C                   ELEMENTS OF THE MATRIX ARE NOT REFERENCED, AND
+C                   THE CORRESPONDING ELEMENTS OF THE ARRAY CAN BE
+C                   USED TO STORE OTHER INFORMATION.
+C
+C         LDT       INTEGER
+C                   LDT IS THE LEADING DIMENSION OF THE ARRAY T.
+C
+C         N         INTEGER
+C                   N IS THE ORDER OF THE SYSTEM.
+C
+C         B         DOUBLE PRECISION(N).
+C                   B CONTAINS THE RIGHT HAND SIDE OF THE SYSTEM.
+C
+C         JOB       INTEGER
+C                   JOB SPECIFIES WHAT KIND OF SYSTEM IS TO BE SOLVED.
+C                   IF JOB IS
+C
+C                        00   SOLVE T*X=B, T LOWER TRIANGULAR,
+C                        01   SOLVE T*X=B, T UPPER TRIANGULAR,
+C                        10   SOLVE TRANS(T)*X=B, T LOWER TRIANGULAR,
+C                        11   SOLVE TRANS(T)*X=B, T UPPER TRIANGULAR.
+C
+C     ON RETURN
+C
+C         B         B CONTAINS THE SOLUTION, IF INFO .EQ. 0.
+C                   OTHERWISE B IS UNALTERED.
+C
+C         INFO      INTEGER
+C                   INFO CONTAINS ZERO IF THE SYSTEM IS NONSINGULAR.
+C                   OTHERWISE INFO CONTAINS THE INDEX OF
+C                   THE FIRST ZERO DIAGONAL ELEMENT OF T.
+C
+C     LINPACK. THIS VERSION DATED 08/14/78 .
+C     G. W. STEWART, UNIVERSITY OF MARYLAND, ARGONNE NATIONAL LAB.
+C
+C     SUBROUTINES AND FUNCTIONS
+C
+C     BLAS DAXPY,DDOT
+C     FORTRAN MOD
+C
+C     INTERNAL VARIABLES
+C
+      DOUBLE PRECISION DDOT,TEMP
+      INTEGER CASE,J,JJ
+C
+C     BEGIN BLOCK PERMITTING ...EXITS TO 150
+C
+C        CHECK FOR ZERO DIAGONAL ELEMENTS.
+C
+         DO 10 INFO = 1, N
+C     ......EXIT
+            IF (T(INFO,INFO) .EQ. 0.0D0) GO TO 150
+   10    CONTINUE
+         INFO = 0
+C
+C        DETERMINE THE TASK AND GO TO IT.
+C
+         CASE = 1
+         IF (MOD(JOB,10) .NE. 0) CASE = 2
+         IF (MOD(JOB,100)/10 .NE. 0) CASE = CASE + 2
+         GO TO (20,50,80,110), CASE
+C
+C        SOLVE T*X=B FOR T LOWER TRIANGULAR
+C
+   20    CONTINUE
+            B(1) = B(1)/T(1,1)
+            IF (N .LT. 2) GO TO 40
+            DO 30 J = 2, N
+               TEMP = -B(J-1)
+               CALL DAXPY(N-J+1,TEMP,T(J,J-1),1,B(J),1)
+               B(J) = B(J)/T(J,J)
+   30       CONTINUE
+   40       CONTINUE
+         GO TO 140
+C
+C        SOLVE T*X=B FOR T UPPER TRIANGULAR.
+C
+   50    CONTINUE
+            B(N) = B(N)/T(N,N)
+            IF (N .LT. 2) GO TO 70
+            DO 60 JJ = 2, N
+               J = N - JJ + 1
+               TEMP = -B(J+1)
+               CALL DAXPY(J,TEMP,T(1,J+1),1,B(1),1)
+               B(J) = B(J)/T(J,J)
+   60       CONTINUE
+   70       CONTINUE
+         GO TO 140
+C
+C        SOLVE TRANS(T)*X=B FOR T LOWER TRIANGULAR.
+C
+   80    CONTINUE
+            B(N) = B(N)/T(N,N)
+            IF (N .LT. 2) GO TO 100
+            DO 90 JJ = 2, N
+               J = N - JJ + 1
+               B(J) = B(J) - DDOT(JJ-1,T(J+1,J),1,B(J+1),1)
+               B(J) = B(J)/T(J,J)
+   90       CONTINUE
+  100       CONTINUE
+         GO TO 140
+C
+C        SOLVE TRANS(T)*X=B FOR T UPPER TRIANGULAR.
+C
+  110    CONTINUE
+            B(1) = B(1)/T(1,1)
+            IF (N .LT. 2) GO TO 130
+            DO 120 J = 2, N
+               B(J) = B(J) - DDOT(J-1,T(1,J),1,B(1),1)
+               B(J) = B(J)/T(J,J)
+  120       CONTINUE
+  130       CONTINUE
+  140    CONTINUE
+  150 CONTINUE
+      RETURN
+      END

@@ -1,0 +1,225 @@
+S compatibility functions (in scompat.R):
+many functions need unix() !
+std.factor.names()
+rtps needs wt.huber()
+
+Note: ported does not mean well tested in every case!
+
+restore.dos.help 	- will not be not ported
+dump.dos.help 		- will not be not ported
+ushell.design 		- ported, needs std.factor.names()
+COR 			- ported, 
+EOF.cov 		- ported
+EXP.cov 		- ported
+FEXP 			- ported
+FUNFITS.version 	- ported
+GaSP.cov 		- ported
+INTERP 			- ported
+US 			- not ported (needs library(maps) !)
+add.netfit.model 	- ported
+addreg 			- ported
+as.EOF.cov 		- ported
+as.cov.isocor 		- ported
+as.surface 		- ported
+as.tiles 		- not ported
+attach.funfits 		- not ported (not needed)
+attach.local 		- not ported     "
+attach.slab 		- not ported     "
+bisection.search 	- ported ?
+bplot 			- not ported
+bubble 			- not ported
+cat.matrix 		- ported
+cat.to.list 		- not ported
+coef.nnreg 		- ported
+contour.tpsreg 		- not ported
+count 			- not ported
+cover.criterion 	- not ported
+cover.design 		- not ported
+curve.example 		- not ported
+d.squasher.nnreg 	- ported
+describe 		- ported
+dump.data.list 		- not ported
+dump.fun.list 		- not ported
+dup 			- ported
+dup.matrix 		- ported
+dynload.HP 		- will not be ported
+emacs 			- will not be ported
+exp.cov 		- ported
+exp.earth.cov 		- not ported
+exp.isocor 		- not ported
+extra 			- not ported
+fast.1way 		- not ported
+find.upcross 		- not ported
+format.help 		- not ported
+fun.ball 		- not ported
+gcv 			- ported
+gcv.krig 		- ported
+gcv.tps 		- ported
+golden.section.search 	- ported
+help.to.latex 		- will not be ported
+interp.grid 		- ported
+interp.surface 		- ported
+krig 			- ported
+leaps.design 		- not ported
+list.to.grid 		- not ported
+lle 			- ported
+lle.default 		- ported
+lle.nlar 		- ported
+lon.lat.to.xy 		- not ported
+lplot 			- not ported
+make.Amatrix 		- ported
+make.Amatrix.krig 	- ported
+make.Amatrix.tps 	- ported
+make.DKc 		- not ported
+make.DTd 		- not ported
+make.Kc 		- ported
+make.Kc.S 		- will not be ported
+make.Mmatrix.tps 	- not ported
+make.diagA 		- not ported
+make.drb 		- not ported
+make.dump.files 	- not ported
+make.gaspb 		- not ported
+make.lags 		- ported
+make.lle 		- ported
+make.qfiles 		- not ported
+make.rb 		- ported
+make.rb.S 		- will not be ported
+make.surface.grid 	- ported
+make.tmatrix 		- ported
+make.tmatrix.S 		- will not be ported
+make.wb 		- not ported
+make.wb2d 		- not ported
+met.s 			- not ported
+mle.krig 		- not ported
+netfit.reformat.greedy 	- ported
+nkden 			- ported
+nkden.cv 		- not ported
+nkreg 			- not ported
+nlar 			- not ported
+nnet.scale 		- not ported
+nnreg 			- ported
+nnregCI 		- ported 
+optim 			- not ported
+optim.funfits 		- not ported
+optim.tpsreg 		- not ported
+pair.na 		- ported
+pairs.funfits 		- not ported
+pareto 			- not ported
+pareto.plus 		- not ported
+pareto.tps 		- not ported
+path 			- not ported
+persp.init 		- not ported
+persp.lines 		- not ported
+persp.points 		- not ported
+persp.polygon 		- not ported
+persp.text 		- not ported
+persp.tiles 		- not ported
+perspp.dist 		- not ported
+pico 			- not ported
+plot.addreg 		- ported
+plot.case.tpsreg 	- not ported
+plot.krig 		- ported
+plot.lle 		- ported
+plot.nlar 		- not ported
+plot.nnreg 		- ported
+plot.predict.tpsreg 	- ported
+plot.spatial.design 	- not ported
+plot.spreg 		- not ported
+plot.sreg 		- not ported
+plot.surface 		- ported
+plot.tps 		- ported
+plot.tpsreg 		- ported
+plot.vgram 		- not ported
+plot.window 		- not ported
+predict.addreg 		- ported
+predict.krig 		- ported
+predict.netfit 		- ported
+predict.nlar 		- not ported
+predict.nnreg 		- ported
+predict.se 		- ported
+predict.se.krig 	- ported
+predict.se.tps 		- not ported
+predict.surface 	- ported
+predict.surface.se 	- not ported
+predict.tps 		- ported
+predict.tpsreg 		- ported ?
+print.krig 		- ported
+print.lle 		- not ported
+print.nlar 		- not ported
+print.nnreg 		- ported
+print.summary.krig 	- not ported
+print.summary.nlar 	- not ported
+print.summary.spatial.design - not ported
+print.summary.tps 	- not ported
+print.text 		- ported
+print.tps 		- ported
+print.tpsreg 		- ported
+pspreg 			- not ported
+qr.q2ty 		- ported
+qr.q2y 			- ported
+qr.yq2 			- ported
+qspreg 			- not ported
+radbas.constant 	- ported
+rdist 			- ported
+rdist.earth 		- not ported
+read.nnreg 		- ported
+remove.file 		- ported
+rename.PCfiles 		- will not be ported
+reset.par 		- not ported
+rowmatch 		- not ported
+rtps 			- not ported
+scaleA 			- not ported
+sd 			- not ported
+set.panel 		- ported
+setup.HP 		- will not be ported
+setup.pc 		- ?? will not be ported
+sigma 			- not ported
+sort.matrix 		- not ported
+splint 			- ported
+spread.design 		- not ported
+spreg 			- not ported
+spreg.local 		- not ported
+squasher.nnreg 		- ported
+sreg 			- not ported
+stats 			- ported
+summary.AOV 		- not ported
+summary.krig 		- ported
+summary.lle 		- ported
+summary.netfit 		- ported
+summary.nlar 		- ported
+summary.nnreg 		- ported
+summary.spatial.design 	- not ported
+summary.tps 		- ported
+summary.tpsreg 		- ported
+surface 		- ported
+surface.addreg 		- ported
+surface.krig 		- ported
+surface.nnreg 		- ported
+surface.surface 	- ported
+surface.tps 		- ported
+surface.tpsreg 		- ported, problems
+touch.file 		- ported
+tps 			- ported
+tps.df.to.lambda 	- ported ?
+tps.fdf 		- ported ?
+tps.fgcv 		- ported
+tps.fs2hat 		- ported
+tps.fshat 		- ported
+tps.ftrace 		- ported
+tps.match.rmse 		- not ported
+tps.parm 		- not ported
+tpsreg 			- ported
+transformx 		- ported
+unique.matrix 		- ported
+unscale 		- ported
+vgfast 			- not ported
+vgram 			- not ported
+wavelet 		- not ported
+write.data 		- ported
+xline 			- ported
+yarn 			- not ported
+yline 			- ported
+grid.list 		- not ported
+help 			- ?? will not be ported
+topic 			- ?? will not be ported
+rdist.S 		- not ported

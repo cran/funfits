@@ -1,0 +1,38 @@
+This is a port of the FUNFITS package (version 2.0) for SPlus by D. Nychka 
+and others, see README.orig or 
+
+	http://www.stat.ncsu.edu/~nychka/funfits/index.html
+
+for details.
+
+This port is at an early stage and covers only parts, because FUNFITS is a 
+very huge library. Especially it will only compile with f77 (I'm using g77),
+there is no f2c version at this time. It is easy to to this conversion
+with f2c, but afterwards you have to create many header files, especially
+for the GCVPACK routines. 
+
+Details of what is ported and what not can be found in PORT-STATUS. 
+(but "ported" does not mean "tested" in every case!) 
+
+What should already work? 
+
+"nnreg", "addreg", "tps", "tpsreg", "krig" -- but not all methods for objects 
+created by these functions are working, some are missing.
+
+All help pages are converted with Sd2Rd, even those of non ported functions.
+
+Hopefully I will finish this port in the near future (and switch to 
+FUNFITS version 2.1).
+
+
+A. Gebhardt
+
+PS:
+Some plot functions use interp(), so you'll need the "akima" library.
+------------------------------------------------------------------------------
+Albrecht Gebhardt          email: albrecht.gebhardt@uni-klu.ac.at
+Institut fuer Mathematik   Tel. : (++43 463) 2700/837
+Universitaet Klagenfurt    Fax  : (++43 463) 2700/834
+Villacher Str. 161         WWW  : http://www-stat.uni-klu.ac.at/~agebhard
+A-9020 Klagenfurt, Austria
+------------------------------------------------------------------------------
